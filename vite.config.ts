@@ -19,7 +19,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@solana/web3.js': resolve(__dirname, 'node_modules/@solana/web3.js/lib/index.browser.esm.js')
+      // '@solana/web3.js': resolve(__dirname, 'node_modules/@solana/web3.js/lib/index.browser.esm.js')
     }
   },
   optimizeDeps: {
