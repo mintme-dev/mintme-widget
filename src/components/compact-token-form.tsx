@@ -1,13 +1,12 @@
 // @ts-nocheck
 "use client"
-import * as web3 from '@solana/web3.js'; // Importación correcta
 import type React from "react"
 import { useState, useRef, useEffect, type ChangeEvent } from "react"
-import { Info, Upload, X, Loader2, CheckCircle, AlertCircle } from "lucide-react"
+import { X, CheckCircle, AlertCircle } from "lucide-react"
+// import { ThemeProvider as StyledThemeProvider } from "styled-components"
 import { Button } from "./ui/button"
 import { FloatingInput } from "./ui/floating-input"
 import { FloatingTextarea } from "./ui/floating-textarea"
-import { Label } from "./ui/label"
 import { Switch } from "./ui/switch"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip"
 import { Alert, AlertDescription } from "./ui/alert"
@@ -16,78 +15,66 @@ import { getPinataService } from "../services/pinata-service"
 import { ThemeToggle } from "./theme-toggle"
 import { WalletMenu } from "./wallet-menu"
 import { createTokenSimple } from "mintme-sdk"
+import { useTheme } from "../styles/ThemeProvider";
 
-// Constants for Solana token limitations
-const MAX_NAME_LENGTH = 32
-const MAX_SYMBOL_LENGTH = 10
-const MIN_DECIMALS = 0
-const MAX_DECIMALS = 9
-const MAX_SUPPLY = 18446744073709551615 // u64 max value
+// Importar interfaces y constantes
+import {
+  type TokenFormProps,
+  type TokenData,
+  type TokenCreationResult,
+  FormStatus,
+  type LogEntry,
+  isValidUrl,
+  MAX_NAME_LENGTH,
+  MAX_SYMBOL_LENGTH,
+  MIN_DECIMALS,
+  MAX_DECIMALS,
+  MAX_SUPPLY,
+} from "./compact-token-form-interface"
 
-// Enhanced URL validation function that allows typing
-const isValidUrl = (url: string): boolean => {
-  if (!url) return true // Empty URL is valid (not required)
-
-  // If the user is typing, allow the input
-  if (url.length < 8) return true // Allow typing at least "http://"
-
-  // Only validate URLs that seem complete
-  if (url.includes(".")) {
-    try {
-      // Try to create a URL object to validate
-      const urlObj = new URL(url)
-      // Verify that the protocol is http or https
-      return urlObj.protocol === "http:" || urlObj.protocol === "https:"
-    } catch (e) {
-      return false
-    }
-  }
-
-  return true // Allow typing while there's no dot (incomplete domain)
-}
-
-interface TokenFormProps {
-  onSubmit?: (tokenData: TokenData, result: TokenCreationResult) => void
-  className?: string
-  connection?: string
-  cluster?: "mainnet" | "devnet" | "testnet"
-  partnerWallet?: string
-  partnerAmount?: number
-  showCredit?: boolean
-}
-
-export interface TokenData {
-  name: string
-  symbol: string
-  decimals: number
-  supply: number
-  image: File | null
-  description: string
-  url: string
-  revokeFreeze: boolean
-  revokeMint: boolean
-}
-
-export interface TokenCreationResult {
-  success: boolean
-  txSignature?: string
-  error?: string
-  tokenAddress?: string
-}
-
-enum FormStatus {
-  IDLE = "idle",
-  UPLOADING_IMAGE = "uploading_image",
-  CREATING_TOKEN = "creating_token",
-  SUCCESS = "success",
-  ERROR = "error",
-}
-
-// Interface for log entries
-interface LogEntry {
-  timestamp: string
-  message: string
-}
+// Importar componentes estilizados
+import {
+  FormContainer,
+  FormHeader,
+  FormContent,
+  FormSection,
+  WalletStatusContainer,
+  WalletStatusFlex,
+  ConnectedStatus,
+  DisconnectedStatus,
+  WalletAddress,
+  Grid,
+  ImageUploadContainer,
+  ImagePreviewContainer,
+  ImagePreview,
+  RemoveImageButton,
+  UploadIcon,
+  UploadText,
+  UploadHint,
+  AuthorityToggleContainer,
+  AuthorityToggleItem,
+  AuthorityLabel,
+  LabelText,
+  InfoIcon,
+  EstimatedFee,
+  StatusIndicator,
+  SubmitButtonContainer,
+  SubmitButton,
+  LoaderIcon,
+  LogsOverlay,
+  LogsContainer,
+  LogsHeader,
+  LogsTitle,
+  CloseButton,
+  LogsContent,
+  LogEntry as StyledLogEntry,
+  LogTimestamp,
+  SuccessResult,
+  SuccessHeader,
+  ExplorerButton,
+  LogsFooter,
+  CreditBadge,
+} from "./compact-token-form-styles"
 
 export function CompactTokenForm({
   onSubmit,
@@ -97,7 +84,13 @@ export function CompactTokenForm({
   partnerWallet = "7viHj1u6aQS9Nmc55FokX3B9NbDJUPwMYQvKgBfWeYXE",
   partnerAmount = 0,
   showCredit = true,
+  // theme, // Asegurarse de que este parámetro se está utilizando correctamente
 }: TokenFormProps) {
+
+  const { themeMode, theme } = useTheme()
+  console.log("MYTHEME",theme);
+  console.log("Tema actual:", themeMode);
+
   const [tokenData, setTokenData] = useState<TokenData>({
     name: "",
     symbol: "",
@@ -295,31 +288,31 @@ export function CompactTokenForm({
       addLog("Sending transaction to Solana network...")
       const sdkResult = await createTokenSimple(tokenConfig)
 
-      // if (sdkResult.success) {
-      //   const tokenResult: TokenCreationResult = {
-      //     success: true,
-      //     txSignature: sdkResult.txSignature,
-      //     tokenAddress: sdkResult.mint,
-      //   }
+      if (sdkResult.success) {
+        const tokenResult: TokenCreationResult = {
+          success: true,
+          txSignature: sdkResult.txSignature,
+          tokenAddress: sdkResult.mint,
+        }
 
-      //   setStatus(FormStatus.SUCCESS)
-      //   setResult(tokenResult)
-      //   addLog(`Token created successfully!`)
-      //   addLog(`Transaction: https://explorer.solana.com/tx/${tokenResult.txSignature}?cluster=${cluster}`)
-      //   if (tokenResult.tokenAddress) {
-      //     addLog(`Token Address: ${tokenResult.tokenAddress}`)
-      //   }
+        setStatus(FormStatus.SUCCESS)
+        setResult(tokenResult)
+        addLog(`Token created successfully!`)
+        addLog(`Transaction: https://explorer.solana.com/tx/${tokenResult.txSignature}?cluster=${cluster}`)
+        if (tokenResult.tokenAddress) {
+          addLog(`Token Address: ${tokenResult.tokenAddress}`)
+        }
 
-      //   // Check if onSubmit is a function before calling it
-      //   if (typeof onSubmit === "function") {
-      //     onSubmit(tokenData, tokenResult)
-      //   }
-      // } else {
-      //   setStatus(FormStatus.ERROR)
-      //   const errorMessage = sdkResult.error || "Unknown error creating token"
-      //   setError(errorMessage)
-      //   addLog(`Error: ${errorMessage}`)
-      // }
+        // Check if onSubmit is a function before calling it
+        if (typeof onSubmit === "function") {
+          onSubmit(tokenData, tokenResult)
+        }
+      } else {
+        setStatus(FormStatus.ERROR)
+        const errorMessage = sdkResult.error || "Unknown error creating token"
+        setError(errorMessage)
+        addLog(`Error: ${errorMessage}`)
+      }
     } catch (error) {
       setStatus(FormStatus.ERROR)
       const errorMessage = error instanceof Error ? error.message : "Unknown error"
@@ -332,31 +325,31 @@ export function CompactTokenForm({
     switch (status) {
       case FormStatus.UPLOADING_IMAGE:
         return (
-          <div className="flex items-center text-amber-500 dark:text-amber-400 text-sm">
-            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+          <StatusIndicator status={status}>
+            <LoaderIcon />
             <span>Uploading to IPFS...</span>
-          </div>
+          </StatusIndicator>
         )
       case FormStatus.CREATING_TOKEN:
         return (
-          <div className="flex items-center text-blue-500 dark:text-blue-400 text-sm">
-            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+          <StatusIndicator status={status}>
+            <LoaderIcon />
             <span>Creating token...</span>
-          </div>
+          </StatusIndicator>
         )
       case FormStatus.SUCCESS:
         return (
-          <div className="flex items-center text-green-500 dark:text-green-400 text-sm">
-            <CheckCircle className="h-4 w-4 mr-1" />
+          <StatusIndicator status={status}>
+            <CheckCircle size={16} style={{ marginRight: "0.25rem" }} />
             <span>Token created successfully!</span>
-          </div>
+          </StatusIndicator>
         )
       case FormStatus.ERROR:
         return (
-          <div className="flex items-center text-red-500 dark:text-red-400 text-sm hidden">
-            <AlertCircle className="h-4 w-4 mr-1" />
+          <StatusIndicator status={status}>
+            <AlertCircle size={16} style={{ marginRight: "0.25rem" }} />
             <span>{error || "An error occurred"}</span>
-          </div>
+          </StatusIndicator>
         )
       default:
         return null
@@ -364,41 +357,37 @@ export function CompactTokenForm({
   }
 
   return (
-    <div
-      className={`w-full max-w-md mx-auto bg-background dark:bg-gray-900 shadow-sm rounded-lg overflow-hidden relative ${className}`}
-    >
-      <div className="bg-gray-50 dark:bg-gray-800 py-1 px-4 border-b dark:border-gray-700 flex justify-between items-center">
-        <div>
+
+      <FormContainer className={className}>
+        <FormHeader>
           <WalletMenu />
-        </div>
-        <ThemeToggle />
-      </div>
+          <ThemeToggle />
+        </FormHeader>
 
-      <form onSubmit={handleSubmit} className="p-4 pb-9">
-        <div className="space-y-4">
-          {/* Wallet Status */}
-          <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded-md text-sm">
-            {connected ? (
-              <div className="flex items-center justify-between">
-                <span className="text-green-600 dark:text-green-400 flex items-center">
-                  <CheckCircle className="h-3.5 w-3.5 mr-1" />
-                  Connected
-                </span>
-                <span className="text-gray-500 dark:text-gray-400 truncate max-w-[200px] font-mono">
-                  {walletAddress}
-                </span>
-              </div>
-            ) : (
-              <div className="text-amber-600 dark:text-amber-400 flex items-center">
-                <AlertCircle className="h-3.5 w-3.5 mr-1" />
-                Please connect your wallet
-              </div>
-            )}
-          </div>
+        <FormContent onSubmit={handleSubmit}>
+          <FormSection>
+            {/* Wallet Status */}
+            <WalletStatusContainer>
+              {connected ? (
+                <WalletStatusFlex>
+                  <ConnectedStatus>
+                    <CheckCircle size={14} style={{ marginRight: "0.25rem" }} />
+                    Connected
+                  </ConnectedStatus>
+                  <WalletAddress>{walletAddress}</WalletAddress>
+                </WalletStatusFlex>
+              ) : (
+                <DisconnectedStatus>
+                  <AlertCircle size={14} style={{ marginRight: "0.25rem" }} />
+                  Please connect your wallet
+                </DisconnectedStatus>
+              )}
+            </WalletStatusContainer>
+          </FormSection>
 
-          {/* Name and Symbol row */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
+          <FormSection>
+            {/* Name and Symbol row */}
+            <Grid>
               <FloatingInput
                 id="name"
                 name="name"
@@ -409,9 +398,6 @@ export function CompactTokenForm({
                 required
                 hint={`${tokenData.name.length}/${MAX_NAME_LENGTH}`}
               />
-            </div>
-
-            <div>
               <FloatingInput
                 id="symbol"
                 name="symbol"
@@ -422,12 +408,12 @@ export function CompactTokenForm({
                 required
                 hint={`${tokenData.symbol.length}/${MAX_SYMBOL_LENGTH}`}
               />
-            </div>
-          </div>
+            </Grid>
+          </FormSection>
 
-          {/* Decimals and Supply row */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
+          <FormSection>
+            {/* Decimals and Supply row */}
+            <Grid>
               <FloatingInput
                 id="decimals"
                 name="decimals"
@@ -439,9 +425,6 @@ export function CompactTokenForm({
                 max={MAX_DECIMALS}
                 required
               />
-            </div>
-
-            <div>
               <FloatingInput
                 id="supply"
                 name="supply"
@@ -453,13 +436,12 @@ export function CompactTokenForm({
                 max={MAX_SUPPLY}
                 required
               />
-            </div>
-          </div>
+            </Grid>
+          </FormSection>
 
-          {/* Token Image */}
-          <div className="space-y-1">
-            <div
-              className="border border-dashed border-gray-200 dark:border-gray-700 rounded-md p-4 flex flex-col items-center justify-center cursor-pointer hover:border-purple-300 dark:hover:border-purple-600 transition-colors"
+          <FormSection>
+            {/* Token Image */}
+            <ImageUploadContainer
               onClick={() => fileInputRef.current?.click()}
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleImageDrop}
@@ -471,41 +453,33 @@ export function CompactTokenForm({
                 type="file"
                 accept="image/png,image/jpeg,image/gif"
                 onChange={handleImageUpload}
-                className="hidden"
+                style={{ display: "none" }}
               />
 
               {imagePreview ? (
-                <div className="relative">
-                  <img
-                    src={imagePreview || "/placeholder.svg"}
-                    alt="Token preview"
-                    className="w-16 h-16 object-contain rounded-md"
-                  />
-                  <button
-                    type="button"
+                <ImagePreviewContainer>
+                  <ImagePreview src={imagePreview || "/placeholder.svg"} alt="Token preview" />
+                  <RemoveImageButton
                     onClick={(e) => {
                       e.stopPropagation()
                       removeImage()
                     }}
-                    className="absolute -top-2 -right-2 bg-red-100 dark:bg-red-900 rounded-full p-1 text-red-500 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800"
                   >
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
+                    <X size={12} />
+                  </RemoveImageButton>
+                </ImagePreviewContainer>
               ) : (
                 <>
-                  <Upload className="h-8 w-8 text-purple-300 dark:text-purple-500 mb-1" />
-                  <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                    Drag and drop an image here, or click to select
-                  </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">PNG, JPG or GIF</p>
+                  <UploadIcon />
+                  <UploadText>Drag and drop an image here, or click to select</UploadText>
+                  <UploadHint>PNG, JPG or GIF</UploadHint>
                 </>
               )}
-            </div>
-          </div>
+            </ImageUploadContainer>
+          </FormSection>
 
-          {/* URL */}
-          <div>
+          <FormSection>
+            {/* URL */}
             <FloatingInput
               id="url"
               name="url"
@@ -517,7 +491,7 @@ export function CompactTokenForm({
                   ? "Please enter a valid URL (e.g., https://example.com)"
                   : "Website URL for your token (optional)"
               }
-              className={urlError ? "border-red-300 dark:border-red-700" : ""}
+              className={urlError ? "error" : ""}
               onBlur={() => {
                 // If there's a URL and it doesn't start with http:// or https://
                 if (tokenData.url && !tokenData.url.match(/^https?:\/\//)) {
@@ -533,10 +507,10 @@ export function CompactTokenForm({
                 }
               }}
             />
-          </div>
+          </FormSection>
 
-          {/* Description */}
-          <div className="space-y-1">
+          <FormSection>
+            {/* Description */}
             <FloatingTextarea
               id="description"
               name="description"
@@ -546,231 +520,201 @@ export function CompactTokenForm({
               maxCount={200}
               showCount={true}
             />
-          </div>
+          </FormSection>
 
-          {/* Authority Toggles */}
-          <div className="grid grid-cols-2 gap-3 pt-1">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <Label htmlFor="revokeFreeze" className="text-xs cursor-pointer">
-                  Revoke Freeze Authority
-                </Label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-3.5 w-3.5 text-purple-400 dark:text-purple-300 cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent side="top">
-                      <p className="w-48 text-xs">Permanently revoke the ability to freeze token accounts</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <Switch
-                id="revokeFreeze"
-                checked={tokenData.revokeFreeze}
-                onCheckedChange={(checked) => handleSwitchChange("revokeFreeze", checked)}
-                className="scale-75 data-[state=checked]:bg-purple-500"
-              />
-            </div>
+          <FormSection>
+            {/* Authority Toggles */}
+            <AuthorityToggleContainer>
+              <AuthorityToggleItem>
+                <AuthorityLabel>
+                  <LabelText htmlFor="revokeFreeze">Revoke Freeze Authority</LabelText>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <InfoIcon />
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p style={{ width: "12rem", fontSize: "0.75rem" }}>
+                          Permanently revoke the ability to freeze token accounts
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </AuthorityLabel>
+                <Switch
+                  id="revokeFreeze"
+                  checked={tokenData.revokeFreeze}
+                  onCheckedChange={(checked) => handleSwitchChange("revokeFreeze", checked)}
+                />
+              </AuthorityToggleItem>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <Label htmlFor="revokeMint" className="text-xs cursor-pointer">
-                  Revoke Mint Authority
-                </Label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-3.5 w-3.5 text-purple-400 dark:text-purple-300 cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent side="top">
-                      <p className="w-48 text-xs">Permanently revoke the ability to mint more tokens</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <Switch
-                id="revokeMint"
-                checked={tokenData.revokeMint}
-                onCheckedChange={(checked) => handleSwitchChange("revokeMint", checked)}
-                className="scale-75 data-[state=checked]:bg-purple-500"
-              />
-            </div>
-          </div>
+              <AuthorityToggleItem>
+                <AuthorityLabel>
+                  <LabelText htmlFor="revokeMint">Revoke Mint Authority</LabelText>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <InfoIcon />
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p style={{ width: "12rem", fontSize: "0.75rem" }}>
+                          Permanently revoke the ability to mint more tokens
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </AuthorityLabel>
+                <Switch
+                  id="revokeMint"
+                  checked={tokenData.revokeMint}
+                  onCheckedChange={(checked) => handleSwitchChange("revokeMint", checked)}
+                />
+              </AuthorityToggleItem>
+            </AuthorityToggleContainer>
+          </FormSection>
 
-          {/* Fee Estimation */}
-          {estimatedFee !== null && (
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              Estimated transaction fee: ~{estimatedFee.toFixed(6)} SOL
-            </div>
-          )}
+          {/* @to-do Fee Estimation */}
+          {/* {estimatedFee !== null && (
+            <EstimatedFee>Estimated transaction fee: ~{estimatedFee.toFixed(6)} SOL</EstimatedFee>
+          )} */}
 
           {/* Status Indicator */}
-          {status !== FormStatus.IDLE && <div className="mt-2">{renderStatusIndicator()}</div>}
+          {status !== FormStatus.IDLE && renderStatusIndicator()}
 
           {/* Error Message */}
           {error && (
-            <Alert variant="destructive" className="py-2 dark:bg-red-900 dark:text-red-100">
-              <AlertDescription className="text-xs">{error}</AlertDescription>
+            <Alert variant="destructive" style={{ padding: "0.5rem", marginTop: "0.5rem" }}>
+              <AlertDescription style={{ fontSize: "0.75rem" }}>{error}</AlertDescription>
             </Alert>
           )}
-        </div>
 
-        {/* Submit Button or Wallet Connect Button */}
-        <div className="mt-5 flex justify-center">
-          {connected ? (
-            <Button
-              type="submit"
-              disabled={status === FormStatus.UPLOADING_IMAGE || status === FormStatus.CREATING_TOKEN || urlError}
-              className="bg-purple-500 hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-700 text-white px-6 py-1.5 rounded-md text-sm transition-colors disabled:bg-purple-300 dark:disabled:bg-purple-800"
-            >
-              {status === FormStatus.UPLOADING_IMAGE || status === FormStatus.CREATING_TOKEN ? (
-                <div className="flex items-center">
-                  <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-                  {status === FormStatus.UPLOADING_IMAGE ? "Uploading..." : "Creating Token..."}
-                </div>
-              ) : (
-                "Create Token"
+          {/* Submit Button or Wallet Connect Button */}
+          <SubmitButtonContainer>
+            {connected ? (
+              <SubmitButton
+                type="submit"
+                disabled={status === FormStatus.UPLOADING_IMAGE || status === FormStatus.CREATING_TOKEN || urlError}
+              >
+                {status === FormStatus.UPLOADING_IMAGE || status === FormStatus.CREATING_TOKEN ? (
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <LoaderIcon />
+                    {status === FormStatus.UPLOADING_IMAGE ? "Uploading..." : "Creating Token..."}
+                  </div>
+                ) : (
+                  "Create Token"
+                )}
+              </SubmitButton>
+            ) : (
+              <WalletConnectButton />
+            )}
+          </SubmitButtonContainer>
+        </FormContent>
+
+        {/* Transaction Logs Overlay */}
+        {showLogs && logs.length > 0 && (
+          <LogsOverlay>
+            <LogsContainer>
+              <LogsHeader>
+                <LogsTitle>Transaction Progress</LogsTitle>
+                {(status === FormStatus.SUCCESS || status === FormStatus.ERROR) && (
+                  <CloseButton onClick={closeLogs}>
+                    <X size={20} />
+                  </CloseButton>
+                )}
+              </LogsHeader>
+
+              {renderStatusIndicator()}
+
+              <LogsContent ref={logsContainerRef}>
+                {logs.map((log, index) => (
+                  <StyledLogEntry key={index}>
+                    <LogTimestamp>[{log.timestamp}]</LogTimestamp>
+                    {log.message}
+                  </StyledLogEntry>
+                ))}
+              </LogsContent>
+
+              {/* Success Result */}
+              {status === FormStatus.SUCCESS && result && (
+                <SuccessResult>
+                  <SuccessHeader>
+                    <CheckCircle size={16} style={{ marginRight: "0.375rem" }} />
+                    Token created successfully!
+                  </SuccessHeader>
+
+                  {result.tokenAddress && (
+                    <ExplorerButton
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        window.open(
+                          `https://explorer.solana.com/account/${result.tokenAddress}?cluster=${cluster}`,
+                          "_blank",
+                          "noopener,noreferrer",
+                        )
+                      }
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          d="M10 6H6C4.89543 6 4 6.89543 4 8V18C4 19.1046 4.89543 20 6 20H16C17.1046 20 18 19.1046 18 18V14M14 4H20M20 4V10M20 4L10 14"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      View Token on Solana Explorer
+                    </ExplorerButton>
+                  )}
+
+                  {result.txSignature && (
+                    <ExplorerButton
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        window.open(
+                          `https://explorer.solana.com/tx/${result.txSignature}?cluster=${cluster}`,
+                          "_blank",
+                          "noopener,noreferrer",
+                        )
+                      }
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          d="M10 6H6C4.89543 6 4 6.89543 4 8V18C4 19.1046 4.89543 20 6 20H16C17.1046 20 18 19.1046 18 18V14M14 4H20M20 4V10M20 4L10 14"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      View TX on Solana Explorer
+                    </ExplorerButton>
+                  )}
+                </SuccessResult>
               )}
-            </Button>
-          ) : (
-            <WalletConnectButton className="bg-purple-500 hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-700 text-white px-6 py-1.5 rounded-md text-sm transition-colors" />
-          )}
-        </div>
-      </form>
-      {/* Transaction Logs Overlay (inside the form container) */}
-      {showLogs && logs.length > 0 && (
-        <div className="absolute inset-0 bg-white dark:bg-gray-900 bg-opacity-95 dark:bg-opacity-95 z-10 flex items-center justify-center p-4">
-          <div className="w-full max-w-md p-4 rounded-lg">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-medium text-gray-800 dark:text-gray-200">Transaction Progress</h3>
+
               {(status === FormStatus.SUCCESS || status === FormStatus.ERROR) && (
-                <button
-                  onClick={closeLogs}
-                  className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+                <LogsFooter>
+                  <Button onClick={closeLogs} variant="outline" size="sm">
+                    Close
+                  </Button>
+                </LogsFooter>
               )}
-            </div>
-            <div className="mb-3">{renderStatusIndicator()}</div>
-            <div
-              ref={logsContainerRef}
-              className="h-48 overflow-y-auto bg-gray-50 dark:bg-gray-800 p-3 rounded-md text-xs"
-            >
-              {logs.map((log, index) => (
-                <div key={index} className="text-gray-600 dark:text-gray-300 mb-1 font-mono">
-                  <span className="text-purple-500 dark:text-purple-400 mr-2">[{log.timestamp}]</span>
-                  {log.message}
-                </div>
-              ))}
-            </div>
+            </LogsContainer>
+          </LogsOverlay>
+        )}
 
-            {/* Success Result */}
-            {status === FormStatus.SUCCESS && result && (
-              <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
-                <div className="text-black-600 dark:text-green-400 font-medium text-sm flex items-center">
-                  <CheckCircle className="h-4 w-4 mr-1.5" />
-                  Token created successfully!
-                </div>
-                {result.tokenAddress && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-2 flex w-full items-center gap-2 border-purple-200 text-purple-500 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-900/30"
-                    onClick={() =>
-                      window.open(
-                        `https://explorer.solana.com/account/${result.tokenAddress}?cluster=${cluster}`,
-                        "_blank",
-                        "noopener,noreferrer",
-                      )
-                    }
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="mr-1"
-                    >
-                      <path
-                        d="M10 6H6C4.89543 6 4 6.89543 4 8V18C4 19.1046 4.89543 20 6 20H16C17.1046 20 18 19.1046 18 18V14M14 4H20M20 4V10M20 4L10 14"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    View Token on Solana Explorer
-                  </Button>
-                )}
-                {result.txSignature && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-2 flex w-full items-center gap-2 border-purple-200 text-purple-500 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-900/30"
-                    onClick={() =>
-                      window.open(
-                        `https://explorer.solana.com/tx/${result.txSignature}?cluster=${cluster}`,
-                        "_blank",
-                        "noopener,noreferrer",
-                      )
-                    }
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="mr-1"
-                    >
-                      <path
-                        d="M10 6H6C4.89543 6 4 6.89543 4 8V18C4 19.1046 4.89543 20 6 20H16C17.1046 20 18 19.1046 18 18V14M14 4H20M20 4V10M20 4L10 14"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    View TX on Solana Explorer
-                  </Button>
-                )}
-              </div>
-            )}
+        {/* Credit Badge */}
+        {showCredit && (
+          <CreditBadge href="https://mintme.dev" target="_blank" rel="noopener noreferrer">
+            <span style={{ fontWeight: 500 }}>mintme.dev</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
+              <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
+            </svg>
+          </CreditBadge>
+        )}
+      </FormContainer>
 
-            {(status === FormStatus.SUCCESS || status === FormStatus.ERROR) && (
-              <div className="mt-4 flex justify-end">
-                <Button
-                  onClick={closeLogs}
-                  variant="outline"
-                  size="sm"
-                  className="dark:border-gray-700 dark:text-gray-300"
-                >
-                  Close
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Conditional rendering of the credit badge */}
-      {showCredit && (
-        <a
-          href="https://mintme.dev"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="absolute bottom-2 right-2 flex items-center gap-1 text-xs bg-gradient-to-r from-purple-500/10 to-purple-600/10 dark:from-purple-500/20 dark:to-purple-600/20 px-2 py-1 rounded-full text-purple-600 dark:text-purple-400 hover:from-purple-500/20 hover:to-purple-600/20 dark:hover:from-purple-500/30 dark:hover:to-purple-600/30 transition-all duration-300 shadow-sm"
-        >
-          <span className="font-medium">mintme.dev</span>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3">
-            <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
-          </svg>
-        </a>
-      )}
-    </div>
   )
 }

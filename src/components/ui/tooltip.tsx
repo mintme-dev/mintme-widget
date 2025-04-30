@@ -17,7 +17,19 @@ const TooltipContent = React.forwardRef<
     ref={ref}
     sideOffset={sideOffset}
     className={cn(
-      "z-50 overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+      "z-50 overflow-hidden rounded-md border border-gray-200 dark:border-gray-700",
+      "bg-white dark:bg-gray-800",
+      "px-3 py-1.5 text-sm",
+      "text-gray-900 dark:text-gray-100",
+      "shadow-md dark:shadow-gray-900/20",
+      "animate-in fade-in-50 zoom-in-95 duration-200",
+      "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 duration-150",
+      "data-[side=bottom]:slide-in-from-top-2",
+      "data-[side=left]:slide-in-from-right-2",
+      "data-[side=right]:slide-in-from-left-2",
+      "data-[side=top]:slide-in-from-bottom-2",
+      // Añadimos un efecto de brillo sutil en el borde superior
+      "before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent dark:before:via-purple-500/20",
       className,
     )}
     {...props}
@@ -25,4 +37,22 @@ const TooltipContent = React.forwardRef<
 ))
 TooltipContent.displayName = TooltipPrimitive.Content.displayName
 
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
+// Añadimos un componente para la flecha del tooltip
+const TooltipArrow = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitive.Arrow>,
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Arrow>
+>(({ className, ...props }, ref) => (
+  <TooltipPrimitive.Arrow
+    ref={ref}
+    className={cn(
+      "fill-white dark:fill-gray-800",
+      "stroke-gray-200 dark:stroke-gray-700",
+      "stroke-[1px]",
+      className
+    )}
+    {...props}
+  />
+))
+TooltipArrow.displayName = TooltipPrimitive.Arrow.displayName
+
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipArrow, TooltipProvider }

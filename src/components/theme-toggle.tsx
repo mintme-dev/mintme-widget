@@ -1,27 +1,67 @@
 "use client"
 
-import { Moon, Sun } from "lucide-react"
-import { useTheme } from "./theme-provider"
-import { Button } from "./ui/button"
+import type React from "react"
+import styled from "styled-components"
+import { Moon, Sun } from 'lucide-react'
+import { useTheme } from "../styles/ThemeProvider"
 
-export function ThemeToggle() {
-  const { theme, setTheme, forcedTheme } = useTheme()
+// Estilizamos el botón con styled-components en lugar de usar clases de Tailwind
+const ToggleButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: ${({ theme }) => theme.spacing[1]};
+  border-radius: ${({ theme }) => theme.radii.full};
+  transition: ${({ theme }) => theme.transitions.default};
+  width: 2rem;
+  height: 2rem;
+  position: relative;
+  
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.backgroundAlt};
+    color: ${({ theme }) => theme.colors.text};
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`
 
-  // If we have a theme will be disabled
-  const isDisabled = !!forcedTheme
+// Estilizamos los iconos
+const SunIcon = styled(Sun)<{ isVisible: boolean }>`
+  height: 1rem;
+  width: 1rem;
+  transition: all 0.2s ease;
+  opacity: ${({ isVisible }) => (isVisible ? 1 : 0)};
+  transform: ${({ isVisible }) => (isVisible ? 'rotate(0) scale(1)' : 'rotate(-90deg) scale(0)')};
+  position: ${({ isVisible }) => (isVisible ? 'static' : 'absolute')};
+`
+
+const MoonIcon = styled(Moon)<{ isVisible: boolean }>`
+  height: 1rem;
+  width: 1rem;
+  transition: all 0.2s ease;
+  opacity: ${({ isVisible }) => (isVisible ? 1 : 0)};
+  transform: ${({ isVisible }) => (isVisible ? 'rotate(0) scale(1)' : 'rotate(90deg) scale(0)')};
+  position: ${({ isVisible }) => (!isVisible ? 'absolute' : 'static')};
+`
+
+export const ThemeToggle: React.FC = () => {
+  const { themeMode, toggleTheme } = useTheme()
+  
+  // Usamos themeMode para determinar qué icono mostrar
+  const isDarkMode = themeMode === "dark"
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-      className={`rounded-full h-8 w-8 p-0 ${isDisabled ? "hidden opacity-50 cursor-not-allowed" : ""}`}
-      disabled={isDisabled}
-      title={isDisabled ? "Theme is controlled by configuration" : "Toggle theme"}
-    >
-      <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+    <ToggleButton onClick={toggleTheme} aria-label="Toggle theme">
+      <SunIcon isVisible={!isDarkMode} />
+      <MoonIcon isVisible={isDarkMode} />
       <span className="sr-only">Toggle theme</span>
-    </Button>
+    </ToggleButton>
   )
 }

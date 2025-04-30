@@ -1,20 +1,107 @@
 "use client"
 
-import * as React from "react"
-import { cn } from "../../lib/utils"
+import type React from "react"
+import { useState, useEffect, forwardRef } from "react"
+import styled from "styled-components"
+
+// Contenedor principal
+const InputContainer = styled.div`
+  position: relative;
+  margin-bottom: ${({ theme }) => theme.spacing[1]};
+`
+
+// Contenedor del input y label
+const InputWrapper = styled.div`
+  position: relative;
+`
+
+// Input estilizado
+const StyledInput = styled.input<{ hasValue: boolean; error?: boolean }>`
+  display: block;
+  width: 100%;
+  padding: ${({ theme }) => `${theme.spacing[2]} ${theme.spacing[3]}`};
+  border: 1px solid ${({ theme, error }) => (error ? theme.colors.error : theme.colors.border)};
+  border-radius: ${({ theme }) => theme.radii.md};
+  background-color: ${({ theme }) => theme.colors.background};
+  transition: ${({ theme }) => theme.transitions.default};
+  outline: none;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.text};
+  
+  &::placeholder {
+    color: transparent;
+  }
+  
+  &:focus {
+    border-color: ${({ theme, error }) => (error ? theme.colors.error : theme.colors.primary)};
+    box-shadow: 0 0 0 1px ${({ theme, error }) => (error ? theme.colors.error : theme.colors.primary)};
+  }
+  
+  &:focus + label, 
+  ${({ hasValue }) =>
+    hasValue &&
+    `
+    + label {
+      transform: translateY(-50%) translateX(-10%) scale(0.8);
+      background-color: ${({ theme }) => theme.colors.background};
+      padding: 0 ${({ theme }) => theme.spacing[1]};
+    }
+  `}
+`
+
+// Label flotante
+const FloatingLabel = styled.label<{ isFocused: boolean; hasValue: boolean; error?: boolean }>`
+  position: absolute;
+  left: ${({ theme }) => theme.spacing[3]};
+  top: 50%;
+  transform: translateY(-50%);
+  color: ${({ theme, isFocused, error }) => {
+    if (error) return theme.colors.error
+    if (isFocused) return theme.colors.primary
+    return theme.colors.textSecondary
+  }};
+  pointer-events: none;
+  transition: ${({ theme }) => theme.transitions.default};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  transform-origin: left top;
+  
+  ${({ isFocused, hasValue, theme }) =>
+    (isFocused || hasValue) &&
+    `
+    transform: translateY(-50%) translateX(-10%) scale(0.8);
+    top: 0;
+    background-color: ${theme.colors.background};
+    padding: 0 ${theme.spacing[1]};
+  `}
+`
+
+// Texto de ayuda
+const HintText = styled.p<{ error?: boolean }>`
+  margin-top: ${({ theme }) => theme.spacing[1]};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme, error }) => (error ? theme.colors.error : theme.colors.textSecondary)};
+  text-align: right;
+`
+
+// Asterisco para campos requeridos
+const RequiredAsterisk = styled.span`
+  color: ${({ theme }) => theme.colors.error};
+  margin-left: ${({ theme }) => theme.spacing[0.5]};
+`
 
 export interface FloatingInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string
   hint?: string
-  error?: boolean
+  error?: boolean | string
 }
 
-const FloatingInput = React.forwardRef<HTMLInputElement, FloatingInputProps>(
+export const FloatingInput = forwardRef<HTMLInputElement, FloatingInputProps>(
   ({ className, label, hint, error = false, id, type, required, value, onChange, ...props }, ref) => {
-    const [isFocused, setIsFocused] = React.useState(false)
-    const [hasValue, setHasValue] = React.useState(false)
+    const [isFocused, setIsFocused] = useState(false)
+    const [hasValue, setHasValue] = useState(false)
 
-    React.useEffect(() => {
+    // Actualizar el estado hasValue cuando cambia el valor
+    useEffect(() => {
       setHasValue(value !== undefined && value !== "")
     }, [value])
 
@@ -33,10 +120,14 @@ const FloatingInput = React.forwardRef<HTMLInputElement, FloatingInputProps>(
       if (onChange) onChange(e)
     }
 
+    // Determinar si hay un mensaje de error
+    const errorMessage = typeof error === "string" ? error : ""
+    const hasError = error === true || !!errorMessage
+
     return (
-      <div className="relative">
-        <div className="relative">
-          <input
+      <InputContainer className={className}>
+        <InputWrapper>
+          <StyledInput
             id={id}
             type={type}
             ref={ref}
@@ -44,55 +135,21 @@ const FloatingInput = React.forwardRef<HTMLInputElement, FloatingInputProps>(
             onChange={handleChange}
             onFocus={handleFocus}
             onBlur={handleBlur}
-            className={cn(
-              "block w-full rounded-md border bg-background dark:bg-gray-800 px-3 py-2 text-xs",
-              "transition-all duration-200 ease-in-out",
-              "focus:outline-none focus:ring-2 focus:border-input",
-              "placeholder:text-transparent",
-              error
-                ? "border-red-300 dark:border-red-700 focus:ring-red-200 dark:focus:ring-red-900 focus:border-red-300 dark:focus:border-red-700"
-                : "border-input dark:border-gray-700 focus:ring-ring dark:focus:ring-purple-900",
-              className,
-            )}
+            hasValue={hasValue}
+            error={hasError}
             placeholder={label}
             required={required}
             {...props}
           />
-          <label
-            htmlFor={id}
-            className={cn(
-              "absolute left-3 text-xs transition-all duration-200 pointer-events-none",
-              isFocused || hasValue
-                ? "-top-2 text-xs bg-background dark:bg-gray-800 px-1"
-                : "top-2 text-muted-foreground dark:text-gray-400",
-              error
-                ? isFocused || hasValue
-                  ? "text-red-500 dark:text-red-400"
-                  : "text-red-400 dark:text-red-500"
-                : isFocused || hasValue
-                  ? "text-primary dark:text-purple-400"
-                  : "",
-            )}
-          >
+          <FloatingLabel htmlFor={id} isFocused={isFocused} hasValue={hasValue} error={hasError}>
             {label}
-            {required && <span className="text-destructive dark:text-red-400 ml-1">*</span>}
-          </label>
-        </div>
-        {hint && (
-          <p
-            className={cn(
-              "mt-1 text-xs",
-              error ? "text-red-500 dark:text-red-400" : "text-muted-foreground dark:text-gray-400",
-            )}
-          >
-            {hint}
-          </p>
-        )}
-      </div>
+            {required && <RequiredAsterisk>*</RequiredAsterisk>}
+          </FloatingLabel>
+        </InputWrapper>
+        {(hint || errorMessage) && <HintText error={hasError}>{errorMessage || hint}</HintText>}
+      </InputContainer>
     )
   },
 )
 
 FloatingInput.displayName = "FloatingInput"
-
-export { FloatingInput }

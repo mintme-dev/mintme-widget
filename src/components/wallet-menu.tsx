@@ -1,6 +1,6 @@
 "use client"
-
 import { useState } from "react"
+import styled from "styled-components"
 import { Wallet, Copy, LogOut, Check } from "lucide-react"
 import { useWalletStatus } from "./wallet-adapter"
 import {
@@ -13,6 +13,78 @@ import {
 } from "./ui/dropdown-menu"
 import { Button } from "./ui/button"
 import { useWallet } from "@solana/wallet-adapter-react"
+
+// Componentes estilizados
+const WalletButton = styled(Button)`
+  border-radius: 9999px;
+  height: 2rem;
+  width: 2rem;
+  padding: 0;
+`
+
+const WalletIcon = styled(Wallet)`
+  height: 1.25rem;
+  width: 1.25rem;
+  color: ${({ theme }) => theme.colors.primary};
+`
+
+const ScreenReaderOnly = styled.span`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+`
+
+const WalletInfoContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+`
+
+const WalletTitle = styled.p`
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
+  line-height: 1;
+  margin: 0;
+`
+
+const WalletAddress = styled.p`
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  line-height: 1;
+  margin: 0;
+`
+
+const MenuItemIcon = styled.span`
+  margin-right: 0.5rem;
+  display: flex;
+  align-items: center;
+`
+
+const DisconnectText = styled.span`
+  color: ${({ theme }) => theme.colors.error};
+`
+
+const CheckIcon = styled(Check)`
+  height: 1rem;
+  width: 1rem;
+  color: ${({ theme }) => theme.colors.success};
+`
+
+const CopyIcon = styled(Copy)`
+  height: 1rem;
+  width: 1rem;
+`
+
+const LogOutIcon = styled(LogOut)`
+  height: 1rem;
+  width: 1rem;
+`
 
 export function WalletMenu() {
   const { connected, walletAddress } = useWalletStatus()
@@ -46,26 +118,28 @@ export function WalletMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 p-0">
-          <Wallet className="h-5 w-5 text-purple-500 dark:text-purple-400" />
-          <span className="sr-only">Wallet menu</span>
-        </Button>
+        <WalletButton variant="ghost">
+          <WalletIcon />
+          <ScreenReaderOnly>Wallet menu</ScreenReaderOnly>
+        </WalletButton>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">Connected Wallet</p>
-            <p className="text-xs leading-none text-muted-foreground">{formatAddress(walletAddress)}</p>
-          </div>
+      <DropdownMenuContent align="end" style={{ width: "14rem" }}>
+        <DropdownMenuLabel style={{ fontWeight: "normal" }}>
+          <WalletInfoContainer>
+            <WalletTitle>Connected Wallet</WalletTitle>
+            <WalletAddress>{formatAddress(walletAddress)}</WalletAddress>
+          </WalletInfoContainer>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={copyToClipboard} className="cursor-pointer">
-          {copied ? <Check className="mr-2 h-4 w-4 text-green-500" /> : <Copy className="mr-2 h-4 w-4" />}
+        <DropdownMenuItem onClick={copyToClipboard} style={{ cursor: "pointer" }}>
+          <MenuItemIcon>{copied ? <CheckIcon /> : <CopyIcon />}</MenuItemIcon>
           <span>{copied ? "Copied!" : "Copy address"}</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleDisconnect} className="cursor-pointer text-red-500 dark:text-red-400">
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>Disconnect</span>
+        <DropdownMenuItem onClick={handleDisconnect} style={{ cursor: "pointer" }}>
+          <MenuItemIcon>
+            <LogOutIcon />
+          </MenuItemIcon>
+          <DisconnectText>Disconnect</DisconnectText>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

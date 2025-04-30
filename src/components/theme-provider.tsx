@@ -28,7 +28,7 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
 export function ThemeProvider({
   children,
   defaultTheme = "light",
-  storageKey = "mintme-ui-theme",
+  storageKey = "mintme-widget-theme",
   forcedTheme,
   ...props
 }: ThemeProviderProps) {

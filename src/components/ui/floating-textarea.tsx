@@ -1,22 +1,132 @@
 "use client"
 
-import * as React from "react"
-import { cn } from "../../lib/utils"
+import type React from "react"
+import { useState, useEffect, forwardRef } from "react"
+import styled from "styled-components"
+
+// Contenedor principal
+const TextareaContainer = styled.div`
+  position: relative;
+  margin-bottom: ${({ theme }) => theme.spacing[1]};
+`
+
+// Contenedor del textarea y label
+const TextareaWrapper = styled.div`
+  position: relative;
+`
+
+// Textarea estilizado
+const StyledTextarea = styled.textarea<{ hasValue: boolean; error?: boolean }>`
+  display: block;
+  width: 100%;
+  min-height: 80px;
+  padding: ${({ theme }) => `${theme.spacing[2]} ${theme.spacing[3]}`};
+  border: 1px solid ${({ theme, error }) => (error ? theme.colors.error : theme.colors.border)};
+  border-radius: ${({ theme }) => theme.radii.md};
+  background-color: ${({ theme }) => theme.colors.background};
+  transition: ${({ theme }) => theme.transitions.default};
+  outline: none;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.text};
+  resize: none;
+  
+  &::placeholder {
+    color: transparent;
+  }
+  
+  &:focus {
+    border-color: ${({ theme, error }) => (error ? theme.colors.error : theme.colors.primary)};
+    box-shadow: 0 0 0 1px ${({ theme, error }) => (error ? theme.colors.error : theme.colors.primary)};
+  }
+  
+  &:focus + label, 
+  ${({ hasValue }) =>
+    hasValue &&
+    `
+    + label {
+      transform: translateY(-50%) translateX(-10%) scale(0.8);
+      background-color: ${({ theme }) => theme.colors.background};
+      padding: 0 ${({ theme }) => theme.spacing[1]};
+    }
+  `}
+`
+
+// Label flotante
+const FloatingLabel = styled.label<{ isFocused: boolean; hasValue: boolean; error?: boolean }>`
+  position: absolute;
+  left: ${({ theme }) => theme.spacing[3]};
+  top: ${({ theme }) => theme.spacing[2]};
+  color: ${({ theme, isFocused, error }) => {
+    if (error) return theme.colors.error
+    if (isFocused) return theme.colors.primary
+    return theme.colors.textSecondary
+  }};
+  pointer-events: none;
+  transition: ${({ theme }) => theme.transitions.default};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  transform-origin: left top;
+  
+  ${({ isFocused, hasValue, theme }) =>
+    (isFocused || hasValue) &&
+    `
+    transform: translateY(-50%) translateX(-10%) scale(0.8);
+    top: 0;
+    background-color: ${theme.colors.background};
+    padding: 0 ${theme.spacing[1]};
+  `}
+`
+
+// Contenedor para hint y contador
+const FooterContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-top: ${({ theme }) => theme.spacing[1]};
+`
+
+// Texto de ayuda
+const HintText = styled.p<{ error?: boolean }>`
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme, error }) => (error ? theme.colors.error : theme.colors.textSecondary)};
+  margin: 0;
+`
+
+// Contador de caracteres
+const CountText = styled.p<{ isNearLimit?: boolean; isAtLimit?: boolean }>`
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  margin: 0;
+  margin-left: auto;
+  color: ${({ theme, isNearLimit, isAtLimit }) => {
+    if (isAtLimit) return theme.colors.error
+    if (isNearLimit) return theme.colors.warning
+    return theme.colors.textSecondary
+  }};
+`
+
+// Asterisco para campos requeridos
+const RequiredAsterisk = styled.span`
+  color: ${({ theme }) => theme.colors.error};
+  margin-left: ${({ theme }) => theme.spacing[0.5]};
+`
 
 export interface FloatingTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label: string
   hint?: string
+  error?: boolean | string
   maxCount?: number
   showCount?: boolean
 }
 
-const FloatingTextarea = React.forwardRef<HTMLTextAreaElement, FloatingTextareaProps>(
-  ({ className, label, hint, maxCount, showCount = false, id, required, value, onChange, ...props }, ref) => {
-    const [isFocused, setIsFocused] = React.useState(false)
-    const [hasValue, setHasValue] = React.useState(false)
-    const [count, setCount] = React.useState(0)
+export const FloatingTextarea = forwardRef<HTMLTextAreaElement, FloatingTextareaProps>(
+  (
+    { className, label, hint, error = false, maxCount, showCount = false, id, required, value, onChange, ...props },
+    ref,
+  ) => {
+    const [isFocused, setIsFocused] = useState(false)
+    const [hasValue, setHasValue] = useState(false)
+    const [count, setCount] = useState(0)
 
-    React.useEffect(() => {
+    // Actualizar estados cuando cambia el valor
+    useEffect(() => {
       if (typeof value === "string") {
         setHasValue(value !== "")
         setCount(value.length)
@@ -39,55 +149,50 @@ const FloatingTextarea = React.forwardRef<HTMLTextAreaElement, FloatingTextareaP
       if (onChange) onChange(e)
     }
 
+    // Determinar si hay un mensaje de error
+    const errorMessage = typeof error === "string" ? error : ""
+    const hasError = error === true || !!errorMessage
+
+    // Determinar si está cerca o en el límite de caracteres
+    const isNearLimit = maxCount ? count >= maxCount * 0.8 : false
+    const isAtLimit = maxCount ? count >= maxCount : false
+
     return (
-      <div className="relative">
-        <div className="relative">
-          <textarea
+      <TextareaContainer className={className}>
+        <TextareaWrapper>
+          <StyledTextarea
             id={id}
             ref={ref}
             value={value}
             onChange={handleChange}
             onFocus={handleFocus}
             onBlur={handleBlur}
-            className={cn(
-              "block w-full rounded-md border border-input dark:border-gray-700 bg-background dark:bg-gray-800 px-3 py-2 text-xs",
-              "transition-all duration-200 ease-in-out",
-              "focus:outline-none focus:ring-2 focus:ring-ring dark:focus:ring-purple-900 focus:border-input dark:focus:border-gray-600",
-              "placeholder:text-transparent",
-              "min-h-[80px] resize-none",
-              className,
-            )}
+            hasValue={hasValue}
+            error={hasError}
             placeholder={label}
             required={required}
             maxLength={maxCount}
             {...props}
           />
-          <label
-            htmlFor={id}
-            className={cn(
-              "absolute left-3 text-xs transition-all duration-200 pointer-events-none",
-              isFocused || hasValue
-                ? "-top-2 text-xs bg-background dark:bg-gray-800 px-1 text-primary dark:text-purple-400"
-                : "top-2 text-muted-foreground dark:text-gray-400",
-            )}
-          >
+          <FloatingLabel htmlFor={id} isFocused={isFocused} hasValue={hasValue} error={hasError}>
             {label}
-            {required && <span className="text-destructive dark:text-red-400 ml-1">*</span>}
-          </label>
-        </div>
-        <div className="flex justify-between mt-1">
-          {hint && <p className="text-xs text-muted-foreground dark:text-gray-400">{hint}</p>}
-          {showCount && maxCount && (
-            <p className="text-xs text-muted-foreground dark:text-gray-400 ml-auto">
-              {count}/{maxCount}
-            </p>
-          )}
-        </div>
-      </div>
+            {required && <RequiredAsterisk>*</RequiredAsterisk>}
+          </FloatingLabel>
+        </TextareaWrapper>
+
+        {(hint || errorMessage || (showCount && maxCount)) && (
+          <FooterContainer>
+            {(hint || errorMessage) && <HintText error={hasError}>{errorMessage || hint}</HintText>}
+            {showCount && maxCount && (
+              <CountText isNearLimit={isNearLimit} isAtLimit={isAtLimit}>
+                {count}/{maxCount}
+              </CountText>
+            )}
+          </FooterContainer>
+        )}
+      </TextareaContainer>
     )
   },
 )
 
 FloatingTextarea.displayName = "FloatingTextarea"
-
-export { FloatingTextarea }

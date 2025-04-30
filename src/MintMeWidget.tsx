@@ -1,13 +1,15 @@
-// @ts-nocheck
 "use client"
 
 import { useState, useEffect } from "react"
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base"
 import { CompactTokenForm, type TokenData, type TokenCreationResult } from "./components/compact-token-form"
 import { WalletAdapter } from "./components/wallet-adapter"
-import { ThemeProvider } from "./components/theme-provider"
+import { ThemeProvider } from "./styles/ThemeProvider"
+import { lightTheme, darkTheme } from "./styles/theme"
 import { initPinataService } from "./services/pinata-service"
 import "./styles.css"
+// Añadir esta importación para depuración en desarrollo
+// import { ThemeDebugger } from "./components/theme-debugger"
 
 export interface MintMeWidgetProps {
   onSubmit?: (tokenData: TokenData, result: TokenCreationResult) => void
@@ -28,19 +30,70 @@ export interface MintMeWidgetProps {
   }
 }
 
-// Componente de carga para SSR
-const LoadingWidget = ({ className = "" }: { className?: string }) => (
+// Componente de carga para SSR con estilos que respetan el tema
+const LoadingWidget = ({ className = "", isDark = true }: { className?: string; isDark?: boolean }) => (
   <div className={`mintme-widget ${className}`}>
-    <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">MintMe Widget</h2>
-      <div className="flex justify-center">
-        <button className="wallet-button bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">
+    <div
+      style={{
+        padding: "1.5rem",
+        maxWidth: "28rem",
+        margin: "0 auto",
+        backgroundColor: isDark ? "#111827" : "#FFFFFF",
+        borderRadius: "0.75rem",
+        boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+      }}
+    >
+      <h2
+        style={{
+          fontSize: "1.25rem",
+          fontWeight: "bold",
+          color: isDark ? "#F9FAFB" : "#111827",
+          marginBottom: "1rem",
+        }}
+      >
+        MintMe Widget
+      </h2>
+      <div style={{ display: "flex", justifyContent: "center" }}>
+        <button
+          style={{
+            backgroundColor: "#8B5CF6",
+            color: "white",
+            padding: "0.5rem 1rem",
+            borderRadius: "0.375rem",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
           Cargando...
         </button>
       </div>
-      <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <h3 className="text-lg font-medium text-gray-900">Wallet Info</h3>
-        <p className="mt-2 text-sm text-gray-600">Cargando componentes de wallet...</p>
+      <div
+        style={{
+          marginTop: "1rem",
+          padding: "1rem",
+          backgroundColor: isDark ? "#1F2937" : "#F9FAFB",
+          borderRadius: "0.5rem",
+          border: `1px solid ${isDark ? "#374151" : "#E5E7EB"}`,
+        }}
+      >
+        <h3
+          style={{
+            fontSize: "1.125rem",
+            fontWeight: "500",
+            color: isDark ? "#F9FAFB" : "#111827",
+          }}
+        >
+          Wallet Info
+        </h3>
+        <p
+          style={{
+            marginTop: "0.5rem",
+            fontSize: "0.875rem",
+            color: isDark ? "#D1D5DB" : "#4B5563",
+          }}
+        >
+          Cargando componentes de wallet...
+        </p>
       </div>
     </div>
   </div>
@@ -65,9 +118,18 @@ export const MintMeWidget = ({
   const [isClient, setIsClient] = useState(false)
   const [isReady, setIsReady] = useState(false)
 
+  // Determinar el tema a usar basado en las opciones
+  const themeToUse = options?.theme || defaultTheme
+
   useEffect(() => {
     // Marcar que estamos en el cliente
     setIsClient(true)
+
+    // Inicializar el tema en localStorage si se proporciona explícitamente en options
+    if (options?.theme) {
+      localStorage.setItem("mintme-widget-theme", options.theme)
+      console.log("Setting initial theme in localStorage:", options.theme)
+    }
 
     // Initialize Pinata service
     if (pinataConfig.apiKey && pinataConfig.apiSecret) {
@@ -84,12 +146,12 @@ export const MintMeWidget = ({
     }, 100)
 
     return () => clearTimeout(timer)
-  }, [pinataConfig.apiKey, pinataConfig.apiSecret])
+  }, [pinataConfig, options?.theme])
 
   // Mapping cluster to network if network is not provided
   const getWalletAdapterNetwork = () => {
     if (network) return network
-    
+
     switch (cluster) {
       case "mainnet":
         return WalletAdapterNetwork.Mainnet
@@ -111,29 +173,37 @@ export const MintMeWidget = ({
     }
   }
 
+  // Determinar si el tema por defecto es oscuro
+  const isDarkTheme =
+    themeToUse === "dark" ||
+    (themeToUse === "system" &&
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches)
+
   // Si no estamos en el cliente o no estamos listos, mostramos el componente de carga
   if (!isClient || !isReady) {
-    return <LoadingWidget className={className} />
+    return <LoadingWidget className={className} isDark={isDarkTheme} />
   }
 
   // Una vez que estamos en el cliente y listos, renderizamos el componente completo
   return (
-	// <>xxx</>
-    <ThemeProvider defaultTheme={defaultTheme} forcedTheme={options?.theme}>
-		<span>xxx RI</span>
-		<WalletAdapter network={getWalletAdapterNetwork()} endpoint={connection}>
-			<CompactTokenForm
-				onSubmit={handleSubmit}
-				connection={connection}
-				cluster={cluster}
-				partnerWallet={partnerWallet}
-				partnerAmount={partnerAmount}
-				showCredit={options?.showCredit}
-			/>
-		</WalletAdapter> 
+    <ThemeProvider 
+      defaultTheme={themeToUse} 
+      themes={{ light: lightTheme, dark: darkTheme }} 
+      forceTheme={options?.theme}
+    >
+      {/* {process.env.NODE_ENV === "development" && <ThemeDebugger />} */}
+      <WalletAdapter network={getWalletAdapterNetwork()} endpoint={connection}>
+        <CompactTokenForm
+          onSubmit={handleSubmit}
+          connection={connection}
+          cluster={cluster}
+          partnerWallet={partnerWallet}
+          partnerAmount={partnerAmount}
+          showCredit={options?.showCredit}
+        />
+      </WalletAdapter>
     </ThemeProvider>
-        // <div className={`mintme-widget font-sans ${className}`}>
-        // </div>
   )
 }
 

@@ -1,27 +1,82 @@
-import * as React from "react"
-import * as SwitchPrimitives from "@radix-ui/react-switch"
+"use client"
 
-import { cn } from "../../lib/utils"
+import type React from "react"
+import { forwardRef } from "react"
+import styled from "styled-components"
 
-const Switch = React.forwardRef<
-  React.ElementRef<typeof SwitchPrimitives.Root>,
-  React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>
->(({ className, ...props }, ref) => (
-  <SwitchPrimitives.Root
-    className={cn(
-      "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-purple-500 data-[state=unchecked]:bg-input",
-      className,
-    )}
-    {...props}
-    ref={ref}
-  >
-    <SwitchPrimitives.Thumb
-      className={cn(
-        "pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0",
-      )}
-    />
-  </SwitchPrimitives.Root>
-))
-Switch.displayName = SwitchPrimitives.Root.displayName
+// Contenedor principal del switch
+const SwitchRoot = styled.button`
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  width: 42px;
+  height: 24px;
+  background-color: ${({ "data-state": state, theme }) =>
+    state === "checked" ? theme.colors.primary : theme.colors.border};
+  border-radius: 9999px;
+  position: relative;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: ${({ theme }) => theme.transitions.default};
+  
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.background}, 
+                0 0 0 4px ${({ theme }) => theme.colors.primary};
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`
 
-export { Switch }
+// Pulgar del switch (la parte que se mueve)
+const SwitchThumb = styled.span`
+  display: block;
+  width: 20px;
+  height: 20px;
+  background-color: white;
+  border-radius: 9999px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateX(${({ "data-state": state }) => (state === "checked" ? "18px" : "2px")});
+  will-change: transform;
+`
+
+// Interfaz compatible con Radix UI
+interface SwitchProps extends React.ComponentPropsWithoutRef<typeof SwitchRoot> {
+  checked?: boolean
+  defaultChecked?: boolean
+  onCheckedChange?: (checked: boolean) => void
+}
+
+// Componente Switch con API compatible con Radix UI
+export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(
+  ({ checked, defaultChecked, onCheckedChange, onChange, ...props }, ref) => {
+    // Determinar el estado actual
+    const state = checked !== undefined ? (checked ? "checked" : "unchecked") : undefined
+
+    // Manejar el cambio de estado
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (onChange) onChange(e)
+      if (onCheckedChange) onCheckedChange(state !== "checked")
+    }
+
+    return (
+      <SwitchRoot
+        type="button"
+        role="switch"
+        aria-checked={checked ?? defaultChecked ?? false}
+        data-state={state || (defaultChecked ? "checked" : "unchecked")}
+        onClick={handleClick}
+        ref={ref}
+        {...props}
+      >
+        <SwitchThumb data-state={state || (defaultChecked ? "checked" : "unchecked")} />
+      </SwitchRoot>
+    )
+  },
+)
+
+Switch.displayName = "Switch"
