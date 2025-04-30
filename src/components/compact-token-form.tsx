@@ -361,7 +361,7 @@ export function CompactTokenForm({
       <FormContainer className={className}>
         <FormHeader>
           <WalletMenu />
-          <ThemeToggle />
+          {/* <ThemeToggle /> */}
         </FormHeader>
 
         <FormContent onSubmit={handleSubmit}>
