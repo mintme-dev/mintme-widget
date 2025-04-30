@@ -1,9 +1,12 @@
 // @ts-nocheck
 // src/services/client-service.ts
-import * as web3 from '@solana/web3.js'; // Importación correcta
-import { useState, useEffect } from 'react';
-import * as tokenService from './token-service'; // Importación directa
-import type { TokenData, TokenCreationResult } from "../components/compact-token-form";
+import * as web3 from "@solana/web3.js";
+import { useState, useEffect } from "react";
+import * as tokenService from "./token-service";
+import type {
+  TokenData,
+  TokenCreationResult,
+} from "../components/compact-token-form";
 
 interface TokenCreationConfig {
   tokenData: TokenData;
@@ -17,33 +20,36 @@ interface TokenCreationConfig {
 }
 
 export function useClientServices() {
-  // No necesitamos estado para cargar el servicio, ya está importado
-  
-  const estimateTokenCreationFee = async (connection: string): Promise<number> => {
+  const estimateTokenCreationFee = async (
+    connection: string
+  ): Promise<number> => {
     try {
       return await tokenService.estimateTokenCreationFee(connection);
     } catch (error) {
       console.error("Error estimating fee:", error);
-      return 1; // Valor por defecto en caso de error
+      return 1; // Show error
     }
   };
 
-  const createToken = async (params: TokenCreationConfig): Promise<TokenCreationResult> => {
+  const createToken = async (
+    params: TokenCreationConfig
+  ): Promise<TokenCreationResult> => {
     try {
       return await tokenService.createToken(params);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       console.error("Error creating token:", errorMessage);
-      
+
       return {
         success: false,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   };
 
   return {
     estimateTokenCreationFee,
-    createToken
+    createToken,
   };
 }

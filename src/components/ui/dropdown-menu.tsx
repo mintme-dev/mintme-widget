@@ -5,7 +5,7 @@ import styled, { css, keyframes } from "styled-components"
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
 import { Check, ChevronRight, Circle } from "lucide-react"
 
-// Animaciones
+// Animtations
 const fadeIn = keyframes`
   from { opacity: 0; }
   to { opacity: 1; }
@@ -46,7 +46,7 @@ const slideInFromLeft = keyframes`
   to { transform: translateX(0); }
 `
 
-// Componentes base
+// Base components
 const DropdownMenu = DropdownMenuPrimitive.Root
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger
 const DropdownMenuGroup = DropdownMenuPrimitive.Group
@@ -54,7 +54,7 @@ const DropdownMenuPortal = DropdownMenuPrimitive.Portal
 const DropdownMenuSub = DropdownMenuPrimitive.Sub
 const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup
 
-// Estilos compartidos para contenido
+// Share style
 const contentStyles = css`
   z-index: 50;
   min-width: 8rem;
@@ -267,7 +267,7 @@ const StyledShortcut = styled.span`
   opacity: 0.6;
 `
 
-// Componentes con forwardRef
+//  forwardRef Components
 const DropdownMenuSubTrigger = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.SubTrigger>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubTrigger> & {

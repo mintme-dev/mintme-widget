@@ -4,13 +4,13 @@ import type React from "react"
 import { useState, useEffect, forwardRef } from "react"
 import styled from "styled-components"
 
-// Contenedor principal
+// Main Wrapper
 const InputContainer = styled.div`
   position: relative;
   margin-bottom: ${({ theme }) => theme.spacing[1]};
 `
 
-// Contenedor del input y label
+// Wrapper Input and Label
 const InputWrapper = styled.div`
   position: relative;
 `

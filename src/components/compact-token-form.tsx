@@ -17,7 +17,7 @@ import { WalletMenu } from "./wallet-menu"
 import { createTokenSimple } from "mintme-sdk"
 import { useTheme } from "../styles/ThemeProvider";
 
-// Importar interfaces y constantes
+// Interfaz and Constant
 import {
   type TokenFormProps,
   type TokenData,
@@ -32,7 +32,7 @@ import {
   MAX_SUPPLY,
 } from "./compact-token-form-interface"
 
-// Importar componentes estilizados
+// Components style
 import {
   FormContainer,
   FormHeader,
@@ -84,12 +84,10 @@ export function CompactTokenForm({
   partnerWallet = "7viHj1u6aQS9Nmc55FokX3B9NbDJUPwMYQvKgBfWeYXE",
   partnerAmount = 0,
   showCredit = true,
-  // theme, // Asegurarse de que este parámetro se está utilizando correctamente
+  // theme, // @to-do to be persistent
 }: TokenFormProps) {
 
   const { themeMode, theme } = useTheme()
-  console.log("MYTHEME",theme);
-  console.log("Tema actual:", themeMode);
 
   const [tokenData, setTokenData] = useState<TokenData>({
     name: "",

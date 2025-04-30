@@ -14,7 +14,7 @@ import {
 import { Button } from "./ui/button"
 import { useWallet } from "@solana/wallet-adapter-react"
 
-// Componentes estilizados
+// Style
 const WalletButton = styled(Button)`
   border-radius: 9999px;
   height: 2rem;

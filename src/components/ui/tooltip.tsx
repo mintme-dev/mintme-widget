@@ -28,7 +28,6 @@ const TooltipContent = React.forwardRef<
       "data-[side=left]:slide-in-from-right-2",
       "data-[side=right]:slide-in-from-left-2",
       "data-[side=top]:slide-in-from-bottom-2",
-      // Añadimos un efecto de brillo sutil en el borde superior
       "before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent dark:before:via-purple-500/20",
       className,
     )}
@@ -37,7 +36,6 @@ const TooltipContent = React.forwardRef<
 ))
 TooltipContent.displayName = TooltipPrimitive.Content.displayName
 
-// Añadimos un componente para la flecha del tooltip
 const TooltipArrow = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Arrow>,
   React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Arrow>

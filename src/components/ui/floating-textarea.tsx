@@ -4,18 +4,18 @@ import type React from "react"
 import { useState, useEffect, forwardRef } from "react"
 import styled from "styled-components"
 
-// Contenedor principal
+// Wrapper
 const TextareaContainer = styled.div`
   position: relative;
   margin-bottom: ${({ theme }) => theme.spacing[1]};
 `
 
-// Contenedor del textarea y label
+// Textarea and label
 const TextareaWrapper = styled.div`
   position: relative;
 `
 
-// Textarea estilizado
+// Textarea
 const StyledTextarea = styled.textarea<{ hasValue: boolean; error?: boolean }>`
   display: block;
   width: 100%;
@@ -51,7 +51,7 @@ const StyledTextarea = styled.textarea<{ hasValue: boolean; error?: boolean }>`
   `}
 `
 
-// Label flotante
+// Label
 const FloatingLabel = styled.label<{ isFocused: boolean; hasValue: boolean; error?: boolean }>`
   position: absolute;
   left: ${({ theme }) => theme.spacing[3]};

@@ -8,8 +8,7 @@ import { ThemeProvider } from "./styles/ThemeProvider"
 import { lightTheme, darkTheme } from "./styles/theme"
 import { initPinataService } from "./services/pinata-service"
 import "./styles.css"
-// Añadir esta importación para depuración en desarrollo
-// import { ThemeDebugger } from "./components/theme-debugger"
+
 
 export interface MintMeWidgetProps {
   onSubmit?: (tokenData: TokenData, result: TokenCreationResult) => void
@@ -30,7 +29,7 @@ export interface MintMeWidgetProps {
   }
 }
 
-// Componente de carga para SSR con estilos que respetan el tema
+// Loading component for SSR with styles that respect the theme
 const LoadingWidget = ({ className = "", isDark = true }: { className?: string; isDark?: boolean }) => (
   <div className={`mintme-widget ${className}`}>
     <div
@@ -64,7 +63,7 @@ const LoadingWidget = ({ className = "", isDark = true }: { className?: string; 
             cursor: "pointer",
           }}
         >
-          Cargando...
+          Loading...
         </button>
       </div>
       <div
@@ -92,14 +91,14 @@ const LoadingWidget = ({ className = "", isDark = true }: { className?: string; 
             color: isDark ? "#D1D5DB" : "#4B5563",
           }}
         >
-          Cargando componentes de wallet...
+          Loading wallet components...
         </p>
       </div>
     </div>
   </div>
 )
 
-// Componente principal
+// Main component
 export const MintMeWidget = ({
   onSubmit,
   className = "",
@@ -118,14 +117,14 @@ export const MintMeWidget = ({
   const [isClient, setIsClient] = useState(false)
   const [isReady, setIsReady] = useState(false)
 
-  // Determinar el tema a usar basado en las opciones
+  // Determine the theme to use based on options
   const themeToUse = options?.theme || defaultTheme
 
   useEffect(() => {
-    // Marcar que estamos en el cliente
+    // Mark that we are on the client
     setIsClient(true)
 
-    // Inicializar el tema en localStorage si se proporciona explícitamente en options
+    // Initialize the theme in localStorage if explicitly provided in options
     if (options?.theme) {
       localStorage.setItem("mintme-widget-theme", options.theme)
       console.log("Setting initial theme in localStorage:", options.theme)
@@ -140,7 +139,7 @@ export const MintMeWidget = ({
       }
     }
 
-    // Pequeño retraso para asegurar que todos los componentes estén cargados
+    // Small delay to ensure all components are loaded
     const timer = setTimeout(() => {
       setIsReady(true)
     }, 100)
@@ -173,26 +172,25 @@ export const MintMeWidget = ({
     }
   }
 
-  // Determinar si el tema por defecto es oscuro
+  // Determine if the default theme is dark
   const isDarkTheme =
     themeToUse === "dark" ||
     (themeToUse === "system" &&
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-color-scheme: dark)").matches)
 
-  // Si no estamos en el cliente o no estamos listos, mostramos el componente de carga
+  // If we're not on the client or not ready, show the loading component
   if (!isClient || !isReady) {
     return <LoadingWidget className={className} isDark={isDarkTheme} />
   }
 
-  // Una vez que estamos en el cliente y listos, renderizamos el componente completo
+  // Once we're on the client and ready, render the full component
   return (
     <ThemeProvider 
       defaultTheme={themeToUse} 
       themes={{ light: lightTheme, dark: darkTheme }} 
       forceTheme={options?.theme}
     >
-      {/* {process.env.NODE_ENV === "development" && <ThemeDebugger />} */}
       <WalletAdapter network={getWalletAdapterNetwork()} endpoint={connection}>
         <CompactTokenForm
           onSubmit={handleSubmit}

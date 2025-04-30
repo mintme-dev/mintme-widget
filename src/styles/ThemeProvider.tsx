@@ -5,13 +5,13 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from "
 import { ThemeProvider as StyledThemeProvider } from "styled-components"
 import { lightTheme, darkTheme, type Theme } from "./theme"
 
-// Definir el tipo para los temas personalizados
+// Define the type for custom themes
 export interface Themes {
   light: Theme
   dark: Theme
 }
 
-// Definir el tipo para el contexto del tema
+// Define the type for the theme context
 interface ThemeContextType {
   themeMode: "light" | "dark"
   toggleTheme: () => void
@@ -19,18 +19,18 @@ interface ThemeContextType {
   theme: Theme
 }
 
-// Crear el contexto del tema
+// Create the theme context
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
-// Clave para localStorage
+// Key for localStorage
 const THEME_STORAGE_KEY = "mintme-widget-theme"
 
-// Props para el ThemeProvider
+// Props for ThemeProvider
 interface ThemeProviderProps {
   children: ReactNode
   defaultTheme?: "light" | "dark" | "system"
   themes?: Themes
-  forceTheme?: "light" | "dark" // Nueva prop para forzar un tema específico
+  forceTheme?: "light" | "dark" // New prop to force a specific theme
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ 
@@ -39,19 +39,19 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   themes,
   forceTheme 
 }) => {
-  // Estado para el modo del tema
+  // State for theme mode
   const [themeMode, setThemeMode] = useState<"light" | "dark">(defaultTheme === "light" ? "light" : "dark")
 
-  // Efecto para inicializar el tema correctamente
+  // Effect to initialize the theme correctly
   useEffect(() => {
-    // Si se proporciona forceTheme, lo usamos directamente
+    // If forceTheme is provided, we use it directly
     if (forceTheme) {
       console.log("Forcing theme to:", forceTheme)
       setThemeMode(forceTheme)
       return
     }
 
-    // @to-do add persistense
+    // @to-do add persistence
     // const savedTheme = false; // localStorage.getItem(THEME_STORAGE_KEY)
     // if (savedTheme === "light" || savedTheme === "dark") {
     //   console.log("Loading theme from localStorage:", savedTheme)
@@ -65,14 +65,14 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     //   console.log("Using default theme:", defaultTheme)
     //   setThemeMode(defaultTheme === "light" ? "light" : "dark")
     // }
-  }, [defaultTheme, forceTheme]) // Se ejecuta cuando cambia defaultTheme o forceTheme
+  }, [defaultTheme, forceTheme]) // Runs when defaultTheme or forceTheme changes
 
-  // Determinar el tema actual basado en el modo y los temas personalizados
+  // Determine the current theme based on mode and custom themes
   const theme = themeMode === "light" ? themes?.light || lightTheme : themes?.dark || darkTheme
 
-  // Función para alternar entre temas
+  // Function to toggle between themes
   const toggleTheme = () => {
-    // Si hay un forceTheme, no permitimos cambiar el tema
+    // If there's a forceTheme, we don't allow changing the theme
     if (forceTheme) {
       console.log("Theme is forced to:", forceTheme, "- cannot toggle")
       return
@@ -84,9 +84,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     localStorage.setItem(THEME_STORAGE_KEY, newTheme)
   }
 
-  // Función para establecer un tema específico
+  // Function to set a specific theme
   const setThemeModeHandler = (mode: "light" | "dark") => {
-    // Si hay un forceTheme, no permitimos cambiar el tema
+    // If there's a forceTheme, we don't allow changing the theme
     if (forceTheme) {
       console.log("Theme is forced to:", forceTheme, "- cannot change")
       return
@@ -97,7 +97,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     localStorage.setItem(THEME_STORAGE_KEY, mode)
   }
 
-  // Valor del contexto
+  // Context value
   const contextValue = {
     themeMode,
     toggleTheme,
@@ -112,7 +112,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   )
 }
 
-// Hook personalizado para usar el tema
+// Custom hook to use the theme
 export const useTheme = (): ThemeContextType => {
   const context = useContext(ThemeContext)
   if (context === undefined) {

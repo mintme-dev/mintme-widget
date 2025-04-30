@@ -54,7 +54,7 @@ const MoonIcon = styled(Moon)<{ isVisible: boolean }>`
 export const ThemeToggle: React.FC = () => {
   const { themeMode, toggleTheme } = useTheme()
   
-  // Usamos themeMode para determinar qué icono mostrar
+  // use themeMode to determine Icon
   const isDarkMode = themeMode === "dark"
 
   return (

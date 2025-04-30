@@ -44,20 +44,20 @@ const SwitchThumb = styled.span`
   will-change: transform;
 `
 
-// Interfaz compatible con Radix UI
+// Radix UI
 interface SwitchProps extends React.ComponentPropsWithoutRef<typeof SwitchRoot> {
   checked?: boolean
   defaultChecked?: boolean
   onCheckedChange?: (checked: boolean) => void
 }
 
-// Componente Switch con API compatible con Radix UI
+// Switch with Radix
 export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(
   ({ checked, defaultChecked, onCheckedChange, onChange, ...props }, ref) => {
-    // Determinar el estado actual
+    // Current state
     const state = checked !== undefined ? (checked ? "checked" : "unchecked") : undefined
 
-    // Manejar el cambio de estado
+    // Change state
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
       if (onChange) onChange(e)
       if (onCheckedChange) onCheckedChange(state !== "checked")

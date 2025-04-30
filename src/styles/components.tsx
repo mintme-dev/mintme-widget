@@ -1,23 +1,23 @@
 import styled from "styled-components"
 
-// Componentes básicos estilizados que se pueden usar en toda la aplicación
+// Basic styled components that can be used throughout the application
 
-// Box: Contenedor básico con propiedades de estilo comunes
+// Box: Basic container with common style properties
 export const Box = styled.div`
   box-sizing: border-box;
 `
 
-// Flex: Contenedor con display: flex
+// Flex: Container with display: flex
 export const Flex = styled(Box)`
   display: flex;
 `
 
-// Grid: Contenedor con display: grid
+// Grid: Container with display: grid
 export const Grid = styled(Box)`
   display: grid;
 `
 
-// Text: Componente para texto con estilos básicos
+// Text: Component for text with basic styles
 export const Text = styled.p<{
   size?: "xs" | "sm" | "md" | "lg" | "xl"
   weight?: "normal" | "medium" | "semibold" | "bold"
@@ -29,7 +29,7 @@ export const Text = styled.p<{
   color: ${({ theme, color }) => (color ? theme.colors[color] || color : theme.colors.text)};
 `
 
-// Heading: Componente para encabezados
+// Heading: Component for headings
 export const Heading = styled.h2<{
   size?: "md" | "lg" | "xl" | "2xl" | "3xl"
   weight?: "normal" | "medium" | "semibold" | "bold"
@@ -41,7 +41,7 @@ export const Heading = styled.h2<{
   color: ${({ theme, color }) => (color ? theme.colors[color] || color : theme.colors.text)};
 `
 
-// Container: Contenedor con ancho máximo y centrado
+// Container: Container with maximum width and centered
 export const Container = styled(Box)`
   width: 100%;
   max-width: 1200px;
@@ -49,7 +49,7 @@ export const Container = styled(Box)`
   padding: 0 ${({ theme }) => theme.spacing[4]};
 `
 
-// Card: Componente de tarjeta básico
+// Card: Basic card component
 export const Card = styled(Box)`
   background-color: ${({ theme }) => theme.colors.background};
   border-radius: ${({ theme }) => theme.radii.lg};
@@ -57,7 +57,7 @@ export const Card = styled(Box)`
   overflow: hidden;
 `
 
-// Button: Botón básico estilizado
+// Button: Basic styled button
 export const Button = styled.button<{
   variant?: "primary" | "secondary" | "outline" | "ghost"
   size?: "sm" | "md" | "lg"
@@ -71,7 +71,7 @@ export const Button = styled.button<{
   cursor: pointer;
   
   ${({ theme, variant, size }) => {
-    // Estilos por variante
+    // Styles by variant
     let variantStyles = ""
 
     switch (variant) {
@@ -131,7 +131,7 @@ export const Button = styled.button<{
         `
     }
 
-    // Estilos por tamaño
+    // Styles by size
     let sizeStyles = ""
 
     switch (size) {
@@ -163,14 +163,14 @@ export const Button = styled.button<{
   }
 `
 
-// Divider: Línea divisoria
+// Divider: Dividing line
 export const Divider = styled.hr`
   border: none;
   border-top: 1px solid ${({ theme }) => theme.colors.border};
   margin: ${({ theme }) => theme.spacing[4]} 0;
 `
 
-// Badge: Etiqueta pequeña
+// Badge: Small label
 export const Badge = styled.span<{
   variant?: "default" | "primary" | "success" | "warning" | "error"
 }>`
@@ -212,7 +212,7 @@ export const Badge = styled.span<{
   }}
 `
 
-// Spinner: Indicador de carga
+// Spinner
 export const Spinner = styled.div`
   border: 2px solid ${({ theme }) => theme.colors.backgroundAlt};
   border-top: 2px solid ${({ theme }) => theme.colors.primary};
@@ -227,7 +227,7 @@ export const Spinner = styled.div`
   }
 `
 
-// Input: Campo de entrada básico
+// Input: Basic input field
 export const Input = styled.input`
   width: 100%;
   padding: ${({ theme }) => `${theme.spacing[2]} ${theme.spacing[3]}`};
@@ -254,7 +254,7 @@ export const Input = styled.input`
   }
 `
 
-// Label: Etiqueta para campos de formulario
+// Label: Label for form fields
 export const Label = styled.label`
   display: block;
   margin-bottom: ${({ theme }) => theme.spacing[1]};
@@ -262,12 +262,12 @@ export const Label = styled.label`
   color: ${({ theme }) => theme.colors.textSecondary};
 `
 
-// FormGroup: Contenedor para grupo de formulario
+// FormGroup: Container for form group
 export const FormGroup = styled.div`
   margin-bottom: ${({ theme }) => theme.spacing[4]};
 `
 
-// ErrorText: Texto de error para formularios
+// ErrorText: Error text for forms
 export const ErrorText = styled.p`
   color: ${({ theme }) => theme.colors.error};
   font-size: ${({ theme }) => theme.fontSizes.xs};
@@ -275,7 +275,7 @@ export const ErrorText = styled.p`
   margin-bottom: 0;
 `
 
-// HelpText: Texto de ayuda para formularios
+// HelpText: Help text for forms
 export const HelpText = styled.p`
   color: ${({ theme }) => theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.fontSizes.xs};
