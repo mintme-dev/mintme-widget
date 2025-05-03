@@ -1,6 +1,6 @@
 // @ts-nocheck
 // src/services/token-service.ts
-import * as web3 from '@solana/web3.js'; // Importación correcta
+import * as web3 from "@solana/web3.js";
 import { createTokenSimple } from "mintme-sdk";
 import type { TokenData } from "../components/compact-token-form";
 
@@ -22,9 +22,20 @@ interface TokenCreationConfig {
   partnerAmount?: number;
 }
 
-export async function createToken(config: TokenCreationConfig): Promise<TokenCreationResult> {
+export async function createToken(
+  config: TokenCreationConfig
+): Promise<TokenCreationResult> {
   try {
-    const { tokenData, metadataUri, wallet, connection, cluster, onLog, partnerWallet, partnerAmount } = config;
+    const {
+      tokenData,
+      metadataUri,
+      wallet,
+      connection,
+      cluster,
+      onLog,
+      partnerWallet,
+      partnerAmount,
+    } = config;
 
     const tokenConfig = {
       tokenName: tokenData.name,
@@ -35,7 +46,8 @@ export async function createToken(config: TokenCreationConfig): Promise<TokenCre
       uri: metadataUri,
       revokeMint: tokenData.revokeMint,
       revokeFreeze: tokenData.revokeFreeze,
-      partnerWallet: partnerWallet || "7viHj1u6aQS9Nmc55FokX3B9NbDJUPwMYQvKgBfWeYXE",
+      partnerWallet:
+        partnerWallet || "7viHj1u6aQS9Nmc55FokX3B9NbDJUPwMYQvKgBfWeYXE",
       partnerAmount: partnerAmount || 0,
       connection: connection || "https://api.devnet.solana.com",
       cluster: cluster,
@@ -46,7 +58,7 @@ export async function createToken(config: TokenCreationConfig): Promise<TokenCre
         signAllTransactions: wallet.signAllTransactions,
       },
     };
-    
+
     const result = await createTokenSimple(tokenConfig);
 
     if (result.success) {
@@ -70,6 +82,9 @@ export async function createToken(config: TokenCreationConfig): Promise<TokenCre
   }
 }
 
-export async function estimateTokenCreationFee(connectionString: string): Promise<number> {
-  return 1; // Valor fijo como tienes actualmente
+// @to-do add estiemate token creatino fee
+export async function estimateTokenCreationFee(
+  connectionString: string
+): Promise<number> {
+  return 0.0008;
 }

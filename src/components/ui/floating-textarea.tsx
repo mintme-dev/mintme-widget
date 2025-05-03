@@ -76,21 +76,21 @@ const FloatingLabel = styled.label<{ isFocused: boolean; hasValue: boolean; erro
   `}
 `
 
-// Contenedor para hint y contador
+// Hint and counter
 const FooterContainer = styled.div`
   display: flex;
   justify-content: space-between;
   margin-top: ${({ theme }) => theme.spacing[1]};
 `
 
-// Texto de ayuda
+// Help
 const HintText = styled.p<{ error?: boolean }>`
   font-size: ${({ theme }) => theme.fontSizes.xs};
   color: ${({ theme, error }) => (error ? theme.colors.error : theme.colors.textSecondary)};
   margin: 0;
 `
 
-// Contador de caracteres
+// Count chars
 const CountText = styled.p<{ isNearLimit?: boolean; isAtLimit?: boolean }>`
   font-size: ${({ theme }) => theme.fontSizes.xs};
   margin: 0;
@@ -102,7 +102,7 @@ const CountText = styled.p<{ isNearLimit?: boolean; isAtLimit?: boolean }>`
   }};
 `
 
-// Asterisco para campos requeridos
+// Required fields
 const RequiredAsterisk = styled.span`
   color: ${({ theme }) => theme.colors.error};
   margin-left: ${({ theme }) => theme.spacing[0.5]};
@@ -125,7 +125,7 @@ export const FloatingTextarea = forwardRef<HTMLTextAreaElement, FloatingTextarea
     const [hasValue, setHasValue] = useState(false)
     const [count, setCount] = useState(0)
 
-    // Actualizar estados cuando cambia el valor
+    // Update state
     useEffect(() => {
       if (typeof value === "string") {
         setHasValue(value !== "")
@@ -149,11 +149,9 @@ export const FloatingTextarea = forwardRef<HTMLTextAreaElement, FloatingTextarea
       if (onChange) onChange(e)
     }
 
-    // Determinar si hay un mensaje de error
     const errorMessage = typeof error === "string" ? error : ""
     const hasError = error === true || !!errorMessage
 
-    // Determinar si está cerca o en el límite de caracteres
     const isNearLimit = maxCount ? count >= maxCount * 0.8 : false
     const isAtLimit = maxCount ? count >= maxCount : false
 

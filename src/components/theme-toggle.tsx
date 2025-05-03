@@ -5,7 +5,7 @@ import styled from "styled-components"
 import { Moon, Sun } from 'lucide-react'
 import { useTheme } from "../styles/ThemeProvider"
 
-// Estilizamos el botón con styled-components en lugar de usar clases de Tailwind
+// add style like tailwind
 const ToggleButton = styled.button`
   background: none;
   border: none;
@@ -32,7 +32,7 @@ const ToggleButton = styled.button`
   }
 `
 
-// Estilizamos los iconos
+// Icons
 const SunIcon = styled(Sun)<{ isVisible: boolean }>`
   height: 1rem;
   width: 1rem;

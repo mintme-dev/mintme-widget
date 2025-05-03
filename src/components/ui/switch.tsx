@@ -4,7 +4,6 @@ import type React from "react"
 import { forwardRef } from "react"
 import styled from "styled-components"
 
-// Contenedor principal del switch
 const SwitchRoot = styled.button`
   all: unset;
   display: inline-flex;
@@ -31,7 +30,6 @@ const SwitchRoot = styled.button`
   }
 `
 
-// Pulgar del switch (la parte que se mueve)
 const SwitchThumb = styled.span`
   display: block;
   width: 20px;

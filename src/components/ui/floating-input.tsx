@@ -14,8 +14,6 @@ const InputContainer = styled.div`
 const InputWrapper = styled.div`
   position: relative;
 `
-
-// Input estilizado
 const StyledInput = styled.input<{ hasValue: boolean; error?: boolean }>`
   display: block;
   width: 100%;
@@ -49,7 +47,6 @@ const StyledInput = styled.input<{ hasValue: boolean; error?: boolean }>`
   `}
 `
 
-// Label flotante
 const FloatingLabel = styled.label<{ isFocused: boolean; hasValue: boolean; error?: boolean }>`
   position: absolute;
   left: ${({ theme }) => theme.spacing[3]};
@@ -75,7 +72,6 @@ const FloatingLabel = styled.label<{ isFocused: boolean; hasValue: boolean; erro
   `}
 `
 
-// Texto de ayuda
 const HintText = styled.p<{ error?: boolean }>`
   margin-top: ${({ theme }) => theme.spacing[1]};
   font-size: ${({ theme }) => theme.fontSizes.xs};
@@ -83,7 +79,6 @@ const HintText = styled.p<{ error?: boolean }>`
   text-align: right;
 `
 
-// Asterisco para campos requeridos
 const RequiredAsterisk = styled.span`
   color: ${({ theme }) => theme.colors.error};
   margin-left: ${({ theme }) => theme.spacing[0.5]};
@@ -100,7 +95,6 @@ export const FloatingInput = forwardRef<HTMLInputElement, FloatingInputProps>(
     const [isFocused, setIsFocused] = useState(false)
     const [hasValue, setHasValue] = useState(false)
 
-    // Actualizar el estado hasValue cuando cambia el valor
     useEffect(() => {
       setHasValue(value !== undefined && value !== "")
     }, [value])
@@ -120,7 +114,6 @@ export const FloatingInput = forwardRef<HTMLInputElement, FloatingInputProps>(
       if (onChange) onChange(e)
     }
 
-    // Determinar si hay un mensaje de error
     const errorMessage = typeof error === "string" ? error : ""
     const hasError = error === true || !!errorMessage
 
