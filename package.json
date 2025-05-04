@@ -1,6 +1,6 @@
 {
 	"name": "mintme-widget",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "A widget for minting tokens on Solana",
 	"main": "dist/mintme-widget.umd.js",
 	"module": "dist/mintme-widget.es.js",
