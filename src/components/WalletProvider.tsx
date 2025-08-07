@@ -13,13 +13,13 @@ import "@solana/wallet-adapter-react-ui/styles.css"
 
 interface WalletContextProviderProps {
   children: ReactNode
-  network?: WalletAdapterNetwork
-  endpoint?: string
+  network: WalletAdapterNetwork // Ahora es requerido y de tipo WalletAdapterNetwork
+  endpoint?: string // Opcional, si se quiere un RPC custom
 }
 
 export const WalletContextProvider: React.FC<WalletContextProviderProps> = ({
   children,
-  network = WalletAdapterNetwork.Devnet,
+  network, // Recibe directamente WalletAdapterNetwork
   endpoint,
 }) => {
   const walletEndpoint = endpoint || clusterApiUrl(network)

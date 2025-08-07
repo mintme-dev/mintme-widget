@@ -24,8 +24,8 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({ label, checked, on
   }
 
   const checkboxStyles: React.CSSProperties = {
-    width: "20px",
-    height: "20px",
+    width: "16px",
+    height: "16px",
     borderRadius: "4px",
     border: `2px solid ${checked ? theme.checkboxBackground : theme.inputBorder}`,
     backgroundColor: checked ? theme.checkboxBackground : "transparent",
@@ -38,7 +38,7 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({ label, checked, on
   }
 
   const labelStyles: React.CSSProperties = {
-    fontSize: "1rem",
+    fontSize: "0.8rem",
     fontWeight: "500",
     color: theme.text,
     marginBottom: "0.25rem",

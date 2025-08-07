@@ -27,7 +27,7 @@ export const FormField: React.FC<FormFieldProps> = ({
   fullWidth = false,
 }) => {
   const fieldStyles: React.CSSProperties = {
-    marginBottom: "1.5rem",
+    marginBottom: "1rem",
     width: fullWidth ? "100%" : "calc(50% - 0.5rem)",
   }
 
@@ -35,8 +35,8 @@ export const FormField: React.FC<FormFieldProps> = ({
     display: "flex",
     alignItems: "center",
     gap: "0.5rem",
-    marginBottom: "0.5rem",
-    fontSize: "1rem",
+    marginBottom: "0.4rem",
+    fontSize: "0.8rem",
     fontWeight: "500",
     color: theme.text,
     fontFamily: "system-ui, -apple-system, sans-serif",
@@ -44,8 +44,8 @@ export const FormField: React.FC<FormFieldProps> = ({
 
   const inputStyles: React.CSSProperties = {
     width: "100%",
-    padding: "0.875rem 1rem",
-    fontSize: "1rem",
+    padding: "0.375rem 0.6rem",
+    fontSize: "0.8rem",
     backgroundColor: theme.inputBackground,
     border: `1px solid ${theme.inputBorder}`,
     borderRadius: "0.5rem",

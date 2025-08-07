@@ -2,18 +2,22 @@
 
 import type React from "react"
 import { useState } from "react"
+import { useWallet } from "@solana/wallet-adapter-react"
+import { useWalletModal } from "@solana/wallet-adapter-react-ui"
 import { FormField } from "./FormField"
 import { CheckboxField } from "./CheckboxField"
-import { useWalletContext } from "../hooks/useWalletContext"
-import type { TokenFormData, ThemeColors } from "../types"
+import { ImageUploadField } from "./ImageUploadField" // Importar el nuevo componente
+import type { TokenFormData, ThemeColors, PinataConfig } from "../types"
 
 interface TokenFormProps {
   onSubmit: (data: TokenFormData) => void
   theme: ThemeColors
+  pinataConfig?: PinataConfig // Recibir pinataConfig
 }
 
-export const TokenForm: React.FC<TokenFormProps> = ({ onSubmit, theme }) => {
-  const { connected, connecting, connect, publicKey } = useWalletContext()
+export const TokenForm: React.FC<TokenFormProps> = ({ onSubmit, theme, pinataConfig }) => {
+  const { connected, connecting, publicKey } = useWallet()
+  const { setVisible } = useWalletModal()
   const [formData, setFormData] = useState<TokenFormData>({
     tokenName: "",
     tokenSymbol: "",
@@ -23,13 +27,15 @@ export const TokenForm: React.FC<TokenFormProps> = ({ onSubmit, theme }) => {
     metadataUrl: "",
     revokeMintAuthority: true,
     revokeFreezeAuthority: true,
+    imageFile: null, // Inicializar nuevo campo
+    ipfsImageUrl: null, // Inicializar nuevo campo
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!connected) {
-      connect()
+      setVisible(true)
       return
     }
     
@@ -40,12 +46,22 @@ export const TokenForm: React.FC<TokenFormProps> = ({ onSubmit, theme }) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
+  const handleImageUpload = (file: File | null, ipfsUrl: string | null) => {
+    setFormData((prev) => ({
+      ...prev,
+      imageFile: file,
+      ipfsImageUrl: ipfsUrl,
+    }))
+  }
+
   const isFormValid = () => {
     return (
       formData.tokenName.trim() !== "" &&
       formData.tokenSymbol.trim() !== "" &&
       formData.initialSupply.trim() !== "" &&
       formData.decimals >= 0
+      // Opcional: Puedes añadir validación para ipfsImageUrl si es requerido
+      // && formData.ipfsImageUrl !== null
     )
   }
 
@@ -60,7 +76,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({ onSubmit, theme }) => {
   }
 
   const sectionTitleStyles: React.CSSProperties = {
-    fontSize: "1.25rem",
+    fontSize: "1rem",
     fontWeight: "600",
     color: theme.text,
     marginBottom: "1rem",
@@ -114,6 +130,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({ onSubmit, theme }) => {
 
   return (
     <form style={formStyles} onSubmit={handleSubmit}>
+      {/* Información de wallet cuando está conectado */}
       {connected && publicKey && (
         <div style={walletInfoStyles}>
           <div style={{ fontSize: "0.875rem", color: theme.text, marginBottom: "0.5rem", fontWeight: "500" }}>
@@ -175,6 +192,15 @@ export const TokenForm: React.FC<TokenFormProps> = ({ onSubmit, theme }) => {
         theme={theme}
         tooltip="Your project's official website"
         fullWidth
+      />
+
+      {/* Nuevo campo para la carga de imagen IPFS */}
+      <ImageUploadField
+        label="Token Image"
+        theme={theme}
+        pinataConfig={pinataConfig}
+        onImageUpload={handleImageUpload}
+        currentIpfsUrl={formData.ipfsImageUrl || undefined}
       />
 
       <FormField
