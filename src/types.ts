@@ -1,6 +1,12 @@
 import type { PublicKey } from "@solana/web3.js";
 import type { WalletAdapter } from "@solana/wallet-adapter-base";
 
+export interface PinataConfig {
+  apiKey: string // JWT token para Pinata
+  apiSecret?: string // Opcional, para compatibilidad con versiones anteriores
+  gateway?: string // Gateway personalizado, por defecto "gateway.pinata.cloud"
+}
+
 export interface MintTokenData {
   name: string;
   symbol: string;

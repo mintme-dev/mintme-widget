@@ -16,7 +16,9 @@
     "dist"
   ],
   "scripts": {
-    "dev": "vite build --watch",
+    "dev": "vite build --watch --mode development",
+    "dev:fast": "vite build --watch --mode development --minify false",
+    "dev:debug": "NODE_ENV=development vite build --watch --mode development --minify false --sourcemap",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },

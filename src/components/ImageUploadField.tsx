@@ -1,43 +1,46 @@
 "use client"
 
 import type React from "react"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react" // Añadido useEffect
 import type { PinataConfig } from "../types"
 import type { ThemeColors } from "../styles/themes"
 
 interface ImageUploadFieldProps {
   label: string
   theme: ThemeColors
-  pinataConfig?: PinataConfig
-  onImageUpload: (file: File | null, ipfsUrl: string | null) => void
-  currentIpfsUrl?: string
+  pinataConfig?: PinataConfig // Se mantiene para consistencia, aunque no se usa directamente para subir aquí
+  onImageUpload: (file: File | null, ipfsUrl: string | null) => void // ipfsUrl será null inicialmente
+  currentIpfsUrl?: string // Para previsualizar una URL ya existente
 }
 
 export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
   label,
   theme,
-  pinataConfig,
   onImageUpload,
   currentIpfsUrl,
 }) => {
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentIpfsUrl || null)
   const [isDragging, setIsDragging] = useState(false)
-  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "success" | "error">("idle")
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  // Sincronizar previewUrl si currentIpfsUrl cambia desde el exterior (ej. después de una subida exitosa)
+  useEffect(() => {
+    if (currentIpfsUrl && currentIpfsUrl !== previewUrl) {
+      setPreviewUrl(currentIpfsUrl)
+      setFile(null) // Si hay una URL IPFS, no hay un archivo local pendiente de subir
+    } else if (!currentIpfsUrl && file === null) {
+      setPreviewUrl(null) // Si no hay URL ni archivo, no hay preview
+    }
+  }, [currentIpfsUrl, previewUrl, file])
 
   const handleFileChange = useCallback(
     (selectedFile: File | null) => {
       setFile(selectedFile)
       if (selectedFile) {
         setPreviewUrl(URL.createObjectURL(selectedFile))
-        setUploadStatus("idle")
-        setErrorMessage(null)
         onImageUpload(selectedFile, null) // Notificar que hay un archivo local, IPFS URL es null por ahora
       } else {
         setPreviewUrl(null)
-        setUploadStatus("idle")
-        setErrorMessage(null)
         onImageUpload(null, null)
       }
     },
@@ -50,11 +53,10 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
       setIsDragging(false)
       if (e.dataTransfer.files && e.dataTransfer.files[0]) {
         const droppedFile = e.dataTransfer.files[0]
-        // Validar que sea una imagen
         if (droppedFile.type.startsWith('image/')) {
           handleFileChange(droppedFile)
         } else {
-          setErrorMessage("Please select a valid image file.")
+          // Podrías añadir un mensaje de error aquí si lo deseas
         }
       }
     },
@@ -70,42 +72,6 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
     e.preventDefault()
     setIsDragging(false)
   }, [])
-
-  const handleUpload = useCallback(async () => {
-    if (!file) {
-      setErrorMessage("Please select an image first.")
-      return
-    }
-    if (!pinataConfig?.apiKey || !pinataConfig?.apiSecret) {
-      setErrorMessage("Pinata API keys are not configured.")
-      return
-    }
-
-    setUploadStatus("uploading")
-    setErrorMessage(null)
-
-    try {
-      // Usar el SDK de Pinata en lugar de fetch directo
-      const { PinataSDK } = await import("pinata")
-      
-      const pinata = new PinataSDK({
-        pinataJwt: pinataConfig.apiKey, // Asumiendo que usaremos JWT
-        pinataGateway: "gateway.pinata.cloud" // Gateway por defecto
-      })
-
-      const upload = await pinata.upload.file(file)
-      const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${upload.IpfsHash}`
-      
-      setPreviewUrl(ipfsUrl)
-      setUploadStatus("success")
-      onImageUpload(file, ipfsUrl) // Notificar la URL IPFS
-    } catch (error: any) {
-      setUploadStatus("error")
-      setErrorMessage(error.message || "An unknown error occurred during upload.")
-      onImageUpload(file, null) // Notificar que falló la carga IPFS
-      console.error("Pinata upload error:", error)
-    }
-  }, [file, pinataConfig, onImageUpload])
 
   const containerStyles: React.CSSProperties = {
     marginBottom: "1.5rem",
@@ -142,33 +108,6 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
     borderRadius: "0.5rem",
     marginTop: "1rem",
     objectFit: "contain" as const,
-  }
-
-  const uploadButtonStyles: React.CSSProperties = {
-    marginTop: "1rem",
-    padding: "0.75rem 1.5rem",
-    fontSize: "0.875rem",
-    fontWeight: "600",
-    backgroundColor: uploadStatus === "uploading" ? theme.textSecondary : theme.buttonPrimary,
-    color: theme.buttonText,
-    border: "none",
-    borderRadius: "0.5rem",
-    cursor: uploadStatus === "uploading" ? "not-allowed" : "pointer",
-    opacity: uploadStatus === "uploading" ? 0.6 : 1,
-    transition: "background-color 0.2s ease",
-    fontFamily: "system-ui, -apple-system, sans-serif",
-  }
-
-  const statusMessageStyles: React.CSSProperties = {
-    marginTop: "0.5rem",
-    fontSize: "0.75rem",
-    color:
-      uploadStatus === "success"
-        ? "#22c55e"
-        : uploadStatus === "error"
-        ? "#ef4444"
-        : theme.textSecondary,
-    fontFamily: "system-ui, -apple-system, sans-serif",
   }
 
   const fileInfoStyles: React.CSSProperties = {
@@ -214,6 +153,11 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
                 {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
               </div>
             )}
+            {!file && currentIpfsUrl && ( // Mostrar URL si no hay archivo local pero sí una URL IPFS
+              <div style={fileInfoStyles}>
+                IPFS URL: <a href={currentIpfsUrl} target="_blank" rel="noopener noreferrer" style={{ color: theme.buttonPrimary, textDecoration: "underline" }}>{currentIpfsUrl.substring(0, 30)}...</a>
+              </div>
+            )}
           </div>
         ) : (
           <div>
@@ -233,38 +177,6 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
           style={{ display: "none" }}
         />
       </div>
-      
-      {file && uploadStatus !== "success" && (
-        <div style={{ textAlign: "center", marginTop: "1rem" }}>
-          <button
-            style={uploadButtonStyles}
-            onClick={handleUpload}
-            disabled={uploadStatus === "uploading"}
-            onMouseEnter={(e) => {
-              if (uploadStatus !== "uploading") {
-                e.currentTarget.style.backgroundColor = theme.buttonPrimaryHover
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (uploadStatus !== "uploading") {
-                e.currentTarget.style.backgroundColor = theme.buttonPrimary
-              }
-            }}
-          >
-            {uploadStatus === "uploading" ? "Uploading to IPFS..." : "Upload to IPFS"}
-          </button>
-        </div>
-      )}
-      
-      {uploadStatus !== "idle" && (
-        <div style={{ textAlign: "center" }}>
-          <p style={statusMessageStyles}>
-            {uploadStatus === "success" && "✅ Upload successful! Image available on IPFS"}
-            {uploadStatus === "uploading" && "⏳ Uploading to IPFS..."}
-            {uploadStatus === "error" && `❌ Error: ${errorMessage}`}
-          </p>
-        </div>
-      )}
     </div>
   )
 }

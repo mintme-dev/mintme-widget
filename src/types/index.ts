@@ -2,8 +2,9 @@ import type React from "react"
 import type { WalletAdapterNetwork } from "@solana/wallet-adapter-base"
 
 export interface PinataConfig {
-  apiKey: string
-  apiSecret: string
+  apiKey: string // JWT token para Pinata
+  apiSecret?: string // Opcional, para compatibilidad con versiones anteriores
+  gateway?: string // Gateway personalizado, por defecto "gateway.pinata.cloud"
 }
 
 export interface TokenData {
@@ -15,14 +16,14 @@ export interface TokenData {
   metadataUrl: string
   revokeMintAuthority: boolean
   revokeFreezeAuthority: boolean
-  imageFile?: File | null // Nuevo campo para el archivo de imagen
-  ipfsImageUrl?: string // Nuevo campo para la URL IPFS de la imagen
+  imageFile?: File | null
+  ipfsImageUrl?: string
 }
 
 export interface TokenCreationResult {
   transactionSignature?: string
   tokenAddress?: string
-  // Puedes añadir más campos aquí según lo que devuelva la creación del token
+  metadataUri?: string // URL de los metadatos en IPFS
 }
 
 export type Theme = "light" | "dark" | "system"
@@ -30,7 +31,7 @@ export type Theme = "light" | "dark" | "system"
 export interface MintmeWidgetProps {
   onSubmit?: (tokenData: TokenData, result: TokenCreationResult) => void
   cluster?: "mainnet-beta" | "testnet" | "devnet"
-  pinataConfig?: PinataConfig // Usamos la interfaz PinataConfig
+  pinataConfig?: PinataConfig
   partnerWallet?: string
   partnerAmount?: number
   defaultTheme?: Theme

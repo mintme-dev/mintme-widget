@@ -6,51 +6,110 @@ import { useWallet } from "@solana/wallet-adapter-react"
 import { useWalletModal } from "@solana/wallet-adapter-react-ui"
 import { FormField } from "./FormField"
 import { CheckboxField } from "./CheckboxField"
-import { ImageUploadField } from "./ImageUploadField" // Importar el nuevo componente
-import type { TokenFormData, ThemeColors, PinataConfig } from "../types"
+import { ImageUploadField } from "./ImageUploadField"
+import { uploadImageToPinata } from "../services/imageUploadService" // Importación corregida
+import { uploadJsonToPinata } from "../services/metadataUploadService" // Nuevo servicio
+import type { TokenData, ThemeColors, PinataConfig, TokenCreationResult } from "../types"
 
 interface TokenFormProps {
-  onSubmit: (data: TokenFormData) => void
+  onSubmit: (data: TokenData, result: TokenCreationResult) => void
   theme: ThemeColors
-  pinataConfig?: PinataConfig // Recibir pinataConfig
+  pinataConfig?: PinataConfig
 }
 
 export const TokenForm: React.FC<TokenFormProps> = ({ onSubmit, theme, pinataConfig }) => {
   const { connected, connecting, publicKey } = useWallet()
   const { setVisible } = useWalletModal()
-  const [formData, setFormData] = useState<TokenFormData>({
+  const [formData, setFormData] = useState<TokenData>({
     tokenName: "",
     tokenSymbol: "",
     decimals: 9,
     initialSupply: "",
     projectWebsite: "",
-    metadataUrl: "",
+    description: "", // Nuevo campo
     revokeMintAuthority: true,
     revokeFreezeAuthority: true,
-    imageFile: null, // Inicializar nuevo campo
-    ipfsImageUrl: null, // Inicializar nuevo campo
+    imageFile: null,
+    ipfsImageUrl: null, // Se actualizará después de la subida
   })
+  const [isSubmittingForm, setIsSubmittingForm] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+    setFormError(null) // Limpiar errores previos
+
     if (!connected) {
       setVisible(true)
       return
     }
-    
-    onSubmit(formData)
+
+    if (!isFormValid()) {
+      setFormError("Please fill in all required fields.")
+      return
+    }
+
+    setIsSubmittingForm(true) // Iniciar estado de envío
+
+    let finalIpfsImageUrl = formData.ipfsImageUrl
+    let metadataUri: string | undefined = undefined
+
+    try {
+      // 1. Subir imagen a IPFS si hay un archivo seleccionado y no se ha subido aún
+      if (formData.imageFile) {
+        if (!pinataConfig?.apiKey) {
+          throw new Error("Pinata API Key (JWT) is required for image upload.")
+        }
+        const uploadedImageUrl = await uploadImageToPinata(formData.imageFile, pinataConfig)
+        finalIpfsImageUrl = uploadedImageUrl
+        // Actualizar el estado local para que ImageUploadField muestre la URL IPFS
+        setFormData((prev) => ({ ...prev, ipfsImageUrl: uploadedImageUrl }))
+      }
+
+      // 2. Construir el objeto JSON de metadatos
+      const metadataJson = {
+        name: formData.tokenName,
+        symbol: formData.tokenSymbol,
+        url: formData.projectWebsite,
+        description: formData.description,
+        decimals: formData.decimals,
+        supply: Number(formData.initialSupply), // Asegurarse de que supply sea un número
+        image: finalIpfsImageUrl || "", // Usar la URL de la imagen subida o cadena vacía
+      }
+
+      // 3. Subir el JSON de metadatos a Pinata
+      if (!pinataConfig?.apiKey) {
+        throw new Error("Pinata API Key (JWT) is required for metadata upload.")
+      }
+      metadataUri = await uploadJsonToPinata(metadataJson, pinataConfig, formData.tokenName)
+
+      // 4. Llamar a la función onSubmit del componente padre
+      onSubmit(
+        { ...formData, ipfsImageUrl: finalIpfsImageUrl }, // Pasar formData actualizado
+        {
+          transactionSignature: undefined, // Esto lo llenará el componente padre
+          tokenAddress: undefined, // Esto lo llenará el componente padre
+          metadataUri: metadataUri, // Pasar el URI de metadatos generado
+        },
+      )
+    } catch (error: any) {
+      console.error("Token creation error:", error)
+      setFormError(error.message || "Failed to create token. Please try again.")
+    } finally {
+      setIsSubmittingForm(false) // Finalizar estado de envío
+    }
   }
 
-  const updateField = (field: keyof TokenFormData, value: any) => {
+  const updateField = (field: keyof TokenData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   const handleImageUpload = (file: File | null, ipfsUrl: string | null) => {
+    // Esta función ahora solo actualiza el archivo local, la subida real ocurre en handleSubmit
     setFormData((prev) => ({
       ...prev,
       imageFile: file,
-      ipfsImageUrl: ipfsUrl,
+      // ipfsImageUrl no se actualiza aquí, solo cuando se sube en handleSubmit
     }))
   }
 
@@ -60,8 +119,6 @@ export const TokenForm: React.FC<TokenFormProps> = ({ onSubmit, theme, pinataCon
       formData.tokenSymbol.trim() !== "" &&
       formData.initialSupply.trim() !== "" &&
       formData.decimals >= 0
-      // Opcional: Puedes añadir validación para ipfsImageUrl si es requerido
-      // && formData.ipfsImageUrl !== null
     )
   }
 
@@ -102,12 +159,13 @@ export const TokenForm: React.FC<TokenFormProps> = ({ onSubmit, theme, pinataCon
 
   const getButtonText = () => {
     if (connecting) return "Connecting..."
+    if (isSubmittingForm) return "Creating Token..."
     if (!connected) return "Connect Wallet"
     return "Create Token"
   }
 
   const getButtonDisabled = () => {
-    if (connecting) return true
+    if (connecting || isSubmittingForm) return true
     if (!connected) return false
     return !isFormValid()
   }
@@ -194,24 +252,23 @@ export const TokenForm: React.FC<TokenFormProps> = ({ onSubmit, theme, pinataCon
         fullWidth
       />
 
-      {/* Nuevo campo para la carga de imagen IPFS */}
+      <FormField
+        label="Description"
+        value={formData.description}
+        onChange={(value) => updateField("description", value)}
+        placeholder="A brief description of your token"
+        theme={theme}
+        tooltip="A short description of your token's purpose or utility"
+        fullWidth
+      />
+
+      {/* Campo para la carga de imagen IPFS (simplificado) */}
       <ImageUploadField
         label="Token Image"
         theme={theme}
-        pinataConfig={pinataConfig}
+        pinataConfig={pinataConfig} // Se pasa para que ImageUploadField pueda acceder a él si lo necesita en el futuro
         onImageUpload={handleImageUpload}
-        currentIpfsUrl={formData.ipfsImageUrl || undefined}
-      />
-
-      <FormField
-        label="Metadata URL"
-        type="url"
-        value={formData.metadataUrl}
-        onChange={(value) => updateField("metadataUrl", value)}
-        placeholder="https://ipfs.mintme.dev/metadata.json"
-        theme={theme}
-        tooltip="URL to your token's metadata JSON file"
-        fullWidth
+        currentIpfsUrl={formData.ipfsImageUrl || undefined} // Pasa la URL IPFS si ya está disponible
       />
 
       <div style={sectionTitleStyles}>Token Authorities</div>
@@ -231,6 +288,12 @@ export const TokenForm: React.FC<TokenFormProps> = ({ onSubmit, theme, pinataCon
         description="Recommended for most tokens. This prevents freezing token accounts in the future."
         theme={theme}
       />
+
+      {formError && (
+        <div style={{ color: "#ef4444", fontSize: "0.875rem", marginTop: "1rem", textAlign: "center" }}>
+          {formError}
+        </div>
+      )}
 
       <button
         type="submit"

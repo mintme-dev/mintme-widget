@@ -7,20 +7,19 @@ import { TokenForm } from "./components/TokenForm"
 import { ThemeToggle } from "./components/ThemeToggle"
 import { WalletContextProvider } from "./components/WalletProvider"
 import { themes, getInitialTheme, getSystemTheme } from "./styles/themes"
-import type { MintmeWidgetProps, TokenData, Theme } from "./types"
+import type { MintmeWidgetProps, TokenData, TokenCreationResult, Theme } from "./types"
 
 const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
-  defaultTheme = "dark", // Usamos defaultTheme
+  defaultTheme = "dark",
   onSubmit,
   className = "",
-  pinataConfig, // Añadido
-  partnerWallet, // Añadido
-  partnerAmount, // Añadido
-  options, // Añadido
+  pinataConfig,
+  partnerWallet,
+  partnerAmount,
+  options,
 }) => {
   const [currentTheme, setCurrentTheme] = useState<"light" | "dark">(() => getInitialTheme(defaultTheme))
 
-  // Efecto para actualizar el tema si la preferencia del sistema cambia
   useEffect(() => {
     if (defaultTheme === "system") {
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
@@ -32,15 +31,17 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
 
   const themeColors = themes[currentTheme]
 
-  const handleSubmit = (data: TokenData) => {
+  const handleSubmit = (data: TokenData, result: TokenCreationResult) => { // Ahora recibe 'result'
     console.log("Token creation data:", data)
+    console.log("Token creation result (including metadataUri):", result)
     // Aquí iría la lógica para crear el token en Solana
     // Por ahora, solo un placeholder para el resultado
-    const result: TokenCreationResult = {
+    const finalResult: TokenCreationResult = {
       transactionSignature: "mock_tx_signature_123",
       tokenAddress: "mock_token_address_abc",
+      metadataUri: result.metadataUri, // Pasa el metadataUri generado
     }
-    onSubmit?.(data, result)
+    onSubmit?.(data, finalResult)
   }
 
   const widgetStyles: React.CSSProperties = {
@@ -58,12 +59,12 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
   }
 
   const headerStyles: React.CSSProperties = {
-    marginBottom: "1rem",
+    marginBottom: "2rem",
     textAlign: "center" as const,
   }
 
   const titleStyles: React.CSSProperties = {
-    fontSize: "1rem",
+    fontSize: "2rem",
     fontWeight: "700",
     color: themeColors.text,
     marginBottom: "0.5rem",
@@ -71,9 +72,9 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
   }
 
   const subtitleStyles: React.CSSProperties = {
-    fontSize: "0.8rem",
+    fontSize: "1.1rem",
     color: themeColors.textSecondary,
-    lineHeight: "1",
+    lineHeight: "1.5",
     fontFamily: "system-ui, -apple-system, sans-serif",
   }
 
@@ -86,7 +87,7 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
         <p style={subtitleStyles}>Create your custom token on the Solana blockchain with just a few clicks.</p>
       </div>
 
-      <TokenForm onSubmit={handleSubmit} theme={themeColors} />
+      <TokenForm onSubmit={handleSubmit} theme={themeColors} pinataConfig={pinataConfig} />
       {options?.showCredit && (
         <div style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "0.8rem", color: themeColors.textSecondary }}>
           <a
@@ -104,10 +105,9 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
 }
 
 export const MintmeWidget: React.FC<MintmeWidgetProps> = ({
-  cluster = "devnet", // Default a devnet si no se especifica
+  cluster = "devnet",
   ...props
 }) => {
-  // Mapear el string 'cluster' a WalletAdapterNetwork
   const solanaNetwork = (cluster: string): WalletAdapterNetwork => {
     switch (cluster) {
       case "mainnet-beta":
@@ -117,7 +117,7 @@ export const MintmeWidget: React.FC<MintmeWidgetProps> = ({
       case "devnet":
         return WalletAdapterNetwork.Devnet
       default:
-        return WalletAdapterNetwork.Devnet // Default a Devnet si no es reconocido
+        return WalletAdapterNetwork.Devnet
     }
   }
 
