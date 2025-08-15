@@ -64,7 +64,7 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
   }
 
   const titleStyles: React.CSSProperties = {
-    fontSize: "2rem",
+    fontSize: "1rem",
     fontWeight: "700",
     color: themeColors.text,
     marginBottom: "0.5rem",
@@ -72,9 +72,9 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
   }
 
   const subtitleStyles: React.CSSProperties = {
-    fontSize: "1.1rem",
+    fontSize: "0.9rem",
     color: themeColors.textSecondary,
-    lineHeight: "1.5",
+    lineHeight: "1",
     fontFamily: "system-ui, -apple-system, sans-serif",
   }
 

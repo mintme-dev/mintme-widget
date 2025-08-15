@@ -7,17 +7,25 @@ export interface PinataConfig {
   gateway?: string // Gateway personalizado, por defecto "gateway.pinata.cloud"
 }
 
+export interface PinataUploadResult {
+  url: string // URL IPFS completa
+  id: string // ID de Pinata para poder eliminar el archivo
+  hash: string // Hash IPFS
+}
+
 export interface TokenData {
   tokenName: string
   tokenSymbol: string
   decimals: number
   initialSupply: string
   projectWebsite: string
-  metadataUrl: string
+  description: string
   revokeMintAuthority: boolean
   revokeFreezeAuthority: boolean
   imageFile?: File | null
   ipfsImageUrl?: string
+  ipfsImageId?: string // ID de Pinata para la imagen
+  ipfsMetadataId?: string // ID de Pinata para los metadatos
 }
 
 export interface TokenCreationResult {
@@ -46,3 +54,6 @@ export interface WalletContextManagerProps {
   network?: WalletAdapterNetwork
   endpoint?: string
 }
+
+// Re-exportar tipos de Mintme
+export type { MintmeConfig, MintmeResult, MintmeSDK } from "./mintme"

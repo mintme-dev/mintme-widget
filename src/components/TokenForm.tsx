@@ -7,18 +7,33 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui"
 import { FormField } from "./FormField"
 import { CheckboxField } from "./CheckboxField"
 import { ImageUploadField } from "./ImageUploadField"
-import { uploadImageToPinata } from "../services/imageUploadService" // Importación corregida
-import { uploadJsonToPinata } from "../services/metadataUploadService" // Nuevo servicio
+import { uploadImageToPinata } from "../services/imageUploadService"
+import { uploadJsonToPinata } from "../services/metadataUploadService"
+import { createIpfsRollbackManager } from "../services/pinataCleanupService"
 import type { TokenData, ThemeColors, PinataConfig, TokenCreationResult } from "../types"
+import { createTokenWithMintme, validateWalletBalance } from "../services/tokenCreationService"
+import { useConnection } from "@solana/wallet-adapter-react"
 
 interface TokenFormProps {
   onSubmit: (data: TokenData, result: TokenCreationResult) => void
   theme: ThemeColors
   pinataConfig?: PinataConfig
+  cluster?: "mainnet-beta" | "testnet" | "devnet"
+  partnerWallet?: string
+  partnerAmount?: number
 }
 
-export const TokenForm: React.FC<TokenFormProps> = ({ onSubmit, theme, pinataConfig }) => {
-  const { connected, connecting, publicKey } = useWallet()
+export const TokenForm: React.FC<TokenFormProps> = ({
+  onSubmit,
+  theme,
+  pinataConfig,
+  cluster,
+  partnerWallet,
+  partnerAmount,
+}) => {
+  // Obtener el contexto completo de la wallet
+  const walletContext = useWallet()
+  const { connected, connecting, publicKey } = walletContext
   const { setVisible } = useWalletModal()
   const [formData, setFormData] = useState<TokenData>({
     tokenName: "",
@@ -26,18 +41,21 @@ export const TokenForm: React.FC<TokenFormProps> = ({ onSubmit, theme, pinataCon
     decimals: 9,
     initialSupply: "",
     projectWebsite: "",
-    description: "", // Nuevo campo
+    description: "",
     revokeMintAuthority: true,
     revokeFreezeAuthority: true,
     imageFile: null,
-    ipfsImageUrl: null, // Se actualizará después de la subida
+    ipfsImageUrl: null,
+    ipfsImageId: null,
+    ipfsMetadataId: null,
   })
   const [isSubmittingForm, setIsSubmittingForm] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+  const { connection } = useConnection()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setFormError(null) // Limpiar errores previos
+    setFormError(null)
 
     if (!connected) {
       setVisible(true)
@@ -49,21 +67,33 @@ export const TokenForm: React.FC<TokenFormProps> = ({ onSubmit, theme, pinataCon
       return
     }
 
-    setIsSubmittingForm(true) // Iniciar estado de envío
+    setIsSubmittingForm(true)
 
-    let finalIpfsImageUrl = formData.ipfsImageUrl
-    let metadataUri: string | undefined = undefined
+    // Crear el manager de rollback para IPFS
+    const rollbackManager = createIpfsRollbackManager()
 
     try {
-      // 1. Subir imagen a IPFS si hay un archivo seleccionado y no se ha subido aún
-      if (formData.imageFile) {
+      let finalIpfsImageUrl = formData.ipfsImageUrl
+      let finalIpfsImageId = formData.ipfsImageId
+
+      // 1. Subir imagen a IPFS si hay un archivo seleccionado
+      if (formData.imageFile && !finalIpfsImageUrl) {
         if (!pinataConfig?.apiKey) {
           throw new Error("Pinata API Key (JWT) is required for image upload.")
         }
-        const uploadedImageUrl = await uploadImageToPinata(formData.imageFile, pinataConfig)
-        finalIpfsImageUrl = uploadedImageUrl
-        // Actualizar el estado local para que ImageUploadField muestre la URL IPFS
-        setFormData((prev) => ({ ...prev, ipfsImageUrl: uploadedImageUrl }))
+
+        console.log("📤 Uploading image to IPFS...")
+        const imageResult = await uploadImageToPinata(formData.imageFile, pinataConfig)
+        finalIpfsImageUrl = imageResult.url
+        finalIpfsImageId = imageResult.id
+        rollbackManager.imageId = imageResult.id // Registrar ID para posible rollback
+
+        setFormData((prev) => ({
+          ...prev,
+          ipfsImageUrl: finalIpfsImageUrl,
+          ipfsImageId: finalIpfsImageId,
+        }))
+        console.log("✅ Image uploaded successfully:", finalIpfsImageUrl)
       }
 
       // 2. Construir el objeto JSON de metadatos
@@ -73,30 +103,92 @@ export const TokenForm: React.FC<TokenFormProps> = ({ onSubmit, theme, pinataCon
         url: formData.projectWebsite,
         description: formData.description,
         decimals: formData.decimals,
-        supply: Number(formData.initialSupply), // Asegurarse de que supply sea un número
-        image: finalIpfsImageUrl || "", // Usar la URL de la imagen subida o cadena vacía
+        supply: Number(formData.initialSupply),
+        image: finalIpfsImageUrl || "",
       }
 
       // 3. Subir el JSON de metadatos a Pinata
       if (!pinataConfig?.apiKey) {
         throw new Error("Pinata API Key (JWT) is required for metadata upload.")
       }
-      metadataUri = await uploadJsonToPinata(metadataJson, pinataConfig, formData.tokenName)
 
-      // 4. Llamar a la función onSubmit del componente padre
-      onSubmit(
-        { ...formData, ipfsImageUrl: finalIpfsImageUrl }, // Pasar formData actualizado
+      console.log("📤 Uploading metadata to IPFS...")
+      const metadataResult = await uploadJsonToPinata(metadataJson, pinataConfig, formData.tokenName)
+      rollbackManager.metadataId = metadataResult.id // Registrar ID para posible rollback
+      console.log("✅ Metadata uploaded successfully:", metadataResult.url)
+
+      // 4. Validar balance de la wallet
+      const hasBalance = await validateWalletBalance(connection, publicKey.toBase58())
+      if (!hasBalance) {
+        throw new Error("Insufficient SOL balance. Please add more SOL to your wallet.")
+      }
+
+      // 5. Crear el token usando el SDK Mintme
+      console.log("🪙 Creating token on Solana...")
+      const tokenResult = await createTokenWithMintme(
         {
-          transactionSignature: undefined, // Esto lo llenará el componente padre
-          tokenAddress: undefined, // Esto lo llenará el componente padre
-          metadataUri: metadataUri, // Pasar el URI de metadatos generado
+          ...formData,
+          ipfsImageUrl: finalIpfsImageUrl,
+          ipfsImageId: finalIpfsImageId,
+          ipfsMetadataId: metadataResult.id,
         },
+        metadataResult.url,
+        walletContext,
+        connection,
+        cluster || "devnet",
+        partnerWallet,
+        partnerAmount,
+      )
+
+      console.log("🎉 Token created successfully!")
+
+      // 6. Si llegamos aquí, todo salió bien - llamar onSubmit
+      onSubmit(
+        {
+          ...formData,
+          ipfsImageUrl: finalIpfsImageUrl,
+          ipfsImageId: finalIpfsImageId,
+          ipfsMetadataId: metadataResult.id,
+        },
+        tokenResult,
       )
     } catch (error: any) {
-      console.error("Token creation error:", error)
-      setFormError(error.message || "Failed to create token. Please try again.")
+      console.error("❌ Token creation failed:", error)
+
+      // Realizar rollback de archivos IPFS si hay configuración de Pinata
+      if (pinataConfig?.apiKey) {
+        console.log("🔄 Performing IPFS rollback due to error...")
+        try {
+          await rollbackManager.cleanup(pinataConfig)
+        } catch (cleanupError) {
+          console.error("⚠️ Error during IPFS cleanup:", cleanupError)
+        }
+      }
+
+      // Limpiar URLs e IDs locales también
+      setFormData((prev) => ({
+        ...prev,
+        ipfsImageUrl: null,
+        ipfsImageId: null,
+        ipfsMetadataId: null,
+      }))
+
+      // Mostrar error al usuario
+      let userFriendlyError = "Failed to create token. Please try again."
+
+      if (error.message?.includes("User rejected")) {
+        userFriendlyError = "Transaction was cancelled by user."
+      } else if (error.message?.includes("insufficient funds")) {
+        userFriendlyError = "Insufficient SOL balance to create token."
+      } else if (error.message?.includes("blockhash")) {
+        userFriendlyError = "Network error. Please try again in a few moments."
+      } else if (error.message) {
+        userFriendlyError = error.message
+      }
+
+      setFormError(userFriendlyError)
     } finally {
-      setIsSubmittingForm(false) // Finalizar estado de envío
+      setIsSubmittingForm(false)
     }
   }
 
@@ -105,11 +197,9 @@ export const TokenForm: React.FC<TokenFormProps> = ({ onSubmit, theme, pinataCon
   }
 
   const handleImageUpload = (file: File | null, ipfsUrl: string | null) => {
-    // Esta función ahora solo actualiza el archivo local, la subida real ocurre en handleSubmit
     setFormData((prev) => ({
       ...prev,
       imageFile: file,
-      // ipfsImageUrl no se actualiza aquí, solo cuando se sube en handleSubmit
     }))
   }
 
@@ -262,13 +352,12 @@ export const TokenForm: React.FC<TokenFormProps> = ({ onSubmit, theme, pinataCon
         fullWidth
       />
 
-      {/* Campo para la carga de imagen IPFS (simplificado) */}
       <ImageUploadField
         label="Token Image"
         theme={theme}
-        pinataConfig={pinataConfig} // Se pasa para que ImageUploadField pueda acceder a él si lo necesita en el futuro
+        pinataConfig={pinataConfig}
         onImageUpload={handleImageUpload}
-        currentIpfsUrl={formData.ipfsImageUrl || undefined} // Pasa la URL IPFS si ya está disponible
+        currentIpfsUrl={formData.ipfsImageUrl || undefined}
       />
 
       <div style={sectionTitleStyles}>Token Authorities</div>
@@ -290,7 +379,18 @@ export const TokenForm: React.FC<TokenFormProps> = ({ onSubmit, theme, pinataCon
       />
 
       {formError && (
-        <div style={{ color: "#ef4444", fontSize: "0.875rem", marginTop: "1rem", textAlign: "center" }}>
+        <div
+          style={{
+            color: "#ef4444",
+            fontSize: "0.875rem",
+            marginTop: "1rem",
+            textAlign: "center",
+            padding: "0.75rem",
+            backgroundColor: "#fef2f2",
+            border: "1px solid #fecaca",
+            borderRadius: "0.5rem",
+          }}
+        >
           {formError}
         </div>
       )}
