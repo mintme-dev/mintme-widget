@@ -2,11 +2,11 @@ import { PinataSDK } from "pinata"
 import type { PinataConfig, PinataUploadResult } from "../types"
 
 /**
- * Sube un archivo de imagen a IPFS usando Pinata.
- * @param file El archivo de imagen a subir.
- * @param config La configuración de Pinata (apiKey, gateway).
- * @returns Una promesa que resuelve con el resultado de la subida (URL, ID, hash).
- * @throws Error si la configuración de Pinata es inválida o si la subida falla.
+ * Upload file to IPFS Pinata
+ * @param file File to upload
+ * @param config Pinata Config (apiKey, gateway).
+ * @returns Promise with result (URL, ID, hash).
+ * @throws Error if config is not correctly.
  */
 export const uploadImageToPinata = async (file: File, config: PinataConfig): Promise<PinataUploadResult> => {
   if (!config.apiKey) {
@@ -29,7 +29,7 @@ export const uploadImageToPinata = async (file: File, config: PinataConfig): Pro
 
     return {
       url: url,
-      id: uploadResult.id, // ID de Pinata para poder eliminar
+      id: uploadResult.id, // ID IPFS to delete if don't do.
       hash: uploadResult.cid, // Hash IPFS
     }
   } catch (error: any) {

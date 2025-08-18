@@ -2,9 +2,9 @@ import type { PublicKey } from "@solana/web3.js";
 import type { WalletAdapter } from "@solana/wallet-adapter-base";
 
 export interface PinataConfig {
-  apiKey: string // JWT token para Pinata
-  apiSecret?: string // Opcional, para compatibilidad con versiones anteriores
-  gateway?: string // Gateway personalizado, por defecto "gateway.pinata.cloud"
+  apiKey: string // JWT token for Pinata
+  apiSecret?: string // Optional, for backward compatibility
+  gateway?: string // Custom gateway, default is "gateway.pinata.cloud"
 }
 
 export interface MintTokenData {
@@ -55,7 +55,7 @@ export interface TokenCreationResult {
   error?: string;
 }
 
-// Enums para estados
+// Enums for states
 export enum FormStatus {
   IDLE = "idle",
   UPLOADING_IMAGE = "uploading_image",
@@ -64,7 +64,7 @@ export enum FormStatus {
   ERROR = "error",
 }
 
-// Constantes de validación
+// Validation constants
 export const MAX_NAME_LENGTH = 32;
 export const MAX_SYMBOL_LENGTH = 10;
 export const MIN_DECIMALS = 0;

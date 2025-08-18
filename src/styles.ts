@@ -41,7 +41,7 @@ export const getSystemTheme = (): "light" | "dark" => {
   if (typeof window !== "undefined" && window.matchMedia) {
     return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
   }
-  return "dark" // Default a dark si no se puede detectar
+  return "dark" // Default a dark if we cannot detect the theme
 }
 
 export const getInitialTheme = (defaultTheme: Theme): "light" | "dark" => {

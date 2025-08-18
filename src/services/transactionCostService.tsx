@@ -1,37 +1,37 @@
 import type { Connection, PublicKey } from "@solana/web3.js"
 
 export interface TransactionCostBreakdown {
-  mintAccountRent: number // Rent para la cuenta del mint
-  metadataAccountRent: number // Rent para la cuenta de metadata
-  tokenAccountRent: number // Rent para la cuenta de tokens
-  transactionFees: number // Fees de transacción
-  partnerFee: number // Comisión del partner
-  total: number // Total en lamports
-  totalSOL: number // Total en SOL
+  mintAccountRent: number // Rent for the mint account
+  metadataAccountRent: number // Rent for the metadata account
+  tokenAccountRent: number // Rent for the token account
+  transactionFees: number // Transaction fees
+  partnerFee: number // Partner commission
+  total: number // Total in lamports
+  totalSOL: number // Total in SOL
 }
 
 /**
- * Calcula el costo estimado de crear un token
- * @param connection Conexión a Solana
- * @param partnerAmount Cantidad de comisión del partner en SOL
- * @returns Desglose de costos estimados
+ * Estimates the cost of creating a token
+ * @param connection Solana connection
+ * @param partnerAmount Partner commission in SOL
+ * @returns Estimated cost breakdown
  */
 export const estimateTokenCreationCost = async (
   connection: Connection,
   partnerAmount = 0,
 ): Promise<TransactionCostBreakdown> => {
   try {
-    // Obtener el rent mínimo para diferentes tipos de cuentas
-    const mintAccountSize = 82 // Tamaño estándar de una cuenta mint
-    const metadataAccountSize = 1600 // Tamaño aproximado de metadata (puede variar)
-    const tokenAccountSize = 165 // Tamaño estándar de una cuenta de tokens
+    // Get minimum rent exemption for different account types
+    const mintAccountSize = 82 // Standard mint account size
+    const metadataAccountSize = 1600 // Approximate metadata size (may vary)
+    const tokenAccountSize = 165 // Standard token account size
 
-    // Calcular rent para cada cuenta
-    const mintAccountRent = (await connection.getMinimumBalanceForRentExemption(mintAccountSize))*1.5
-    const metadataAccountRent = (await connection.getMinimumBalanceForRentExemption(metadataAccountSize))*1.5
-    const tokenAccountRent = (await connection.getMinimumBalanceForRentExemption(tokenAccountSize))*1.5
+    // Calculate rent for each account
+    const mintAccountRent = (await connection.getMinimumBalanceForRentExemption(mintAccountSize)) * 1.5
+    const metadataAccountRent = (await connection.getMinimumBalanceForRentExemption(metadataAccountSize)) * 1.5
+    const tokenAccountRent = (await connection.getMinimumBalanceForRentExemption(tokenAccountSize)) * 1.5
 
-    const transactionFees = 8000 // Base fee para la transacción
+    const transactionFees = 8000 // Base fee for the transaction
 
     const partnerFee = partnerAmount * 1_000_000_000 // 1 SOL = 1B lamports
 
@@ -50,8 +50,8 @@ export const estimateTokenCreationCost = async (
   } catch (error) {
     console.error("Error estimating transaction cost:", error)
 
-    // Valores por defecto si no se puede calcular
-    const defaultTotal = 15_000_000 // ~0.015 SOL como estimación conservadora
+    // Default values if estimation fails
+    const defaultTotal = 15_000_000 // ~0.015 SOL as a conservative estimate
     return {
       mintAccountRent: 1_461_600, // ~0.0014 SOL
       metadataAccountRent: 5_616_720, // ~0.0056 SOL
@@ -65,21 +65,21 @@ export const estimateTokenCreationCost = async (
 }
 
 /**
- * Formatea un número de lamports a SOL con decimales apropiados
- * @param lamports Cantidad en lamports
- * @returns String formateado en SOL
+ * Formats lamports into SOL with proper decimals
+ * @param lamports Amount in lamports
+ * @returns Formatted string in SOL
  */
 export const formatLamportsToSOL = (lamports: number): string => {
   const sol = lamports / 1_000_000_000
-  return sol.toFixed(6) // 6 decimales para precisión
+  return sol.toFixed(6) // 6 decimals for precision
 }
 
 /**
- * Verifica si una wallet tiene suficiente balance para la transacción
- * @param connection Conexión a Solana
- * @param walletPublicKey Clave pública de la wallet
- * @param estimatedCost Costo estimado en lamports
- * @returns Información sobre el balance
+ * Checks if a wallet has enough balance for the transaction
+ * @param connection Solana connection
+ * @param walletPublicKey Wallet public key
+ * @param estimatedCost Estimated cost in lamports
+ * @returns Balance information
  */
 export const checkWalletBalance = async (
   connection: Connection,

@@ -8,18 +8,18 @@ import { PhantomWalletAdapter, SolflareWalletAdapter, TorusWalletAdapter } from 
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui"
 import { clusterApiUrl } from "@solana/web3.js"
 
-// Importa los estilos CSS para los componentes de UI de la wallet
+// Add styles
 import "@solana/wallet-adapter-react-ui/styles.css"
 
 interface WalletContextProviderProps {
   children: ReactNode
-  network: WalletAdapterNetwork // Ahora es requerido y de tipo WalletAdapterNetwork
-  endpoint?: string // Opcional, si se quiere un RPC custom
+  network: WalletAdapterNetwork
+  endpoint?: string
 }
 
 export const WalletContextProvider: React.FC<WalletContextProviderProps> = ({
   children,
-  network, // Recibe directamente WalletAdapterNetwork
+  network,
   endpoint,
 }) => {
   const walletEndpoint = endpoint || clusterApiUrl(network)

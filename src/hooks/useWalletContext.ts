@@ -7,7 +7,7 @@ export const useWalletContext = () => {
     const wallet = useWallet()
     const { connection } = useConnection()
     
-    // Verificar si realmente tenemos un contexto válido
+    // Check context
     if (wallet && connection) {
       return {
         ...wallet,

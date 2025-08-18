@@ -46,11 +46,11 @@ export const TransactionCostDisplay: React.FC<TransactionCostDisplayProps> = ({
 
     setIsLoading(true)
     try {
-      // Calcular costo estimado
+      // Estimate Cost
       const cost = await estimateTokenCreationCost(connection, partnerAmount)
       setCostBreakdown(cost)
 
-      // Verificar balance de la wallet
+      // Check Wallet Balance
       const balance = await checkWalletBalance(connection, publicKey, cost.total)
       setWalletBalance(balance)
     } catch (error) {

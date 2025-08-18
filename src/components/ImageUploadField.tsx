@@ -8,9 +8,9 @@ import type { ThemeColors } from "../styles/themes"
 interface ImageUploadFieldProps {
   label: string
   theme: ThemeColors
-  pinataConfig?: PinataConfig // Se mantiene para consistencia, aunque no se usa directamente para subir aquí
-  onImageUpload: (file: File | null, ipfsUrl: string | null) => void // ipfsUrl será null inicialmente
-  currentIpfsUrl?: string // Para previsualizar una URL ya existente
+  pinataConfig?: PinataConfig 
+  onImageUpload: (file: File | null, ipfsUrl: string | null) => void 
+  currentIpfsUrl?: string 
 }
 
 export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({ label, theme, onImageUpload, currentIpfsUrl }) => {
@@ -19,13 +19,13 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({ label, theme
   const [isDragging, setIsDragging] = useState(false)
   const [showTooltip, setShowTooltip] = useState(false)
 
-  // Sincronizar previewUrl si currentIpfsUrl cambia desde el exterior (ej. después de una subida exitosa)
+  
   useEffect(() => {
     if (currentIpfsUrl && currentIpfsUrl !== previewUrl) {
       setPreviewUrl(currentIpfsUrl)
-      setFile(null) // Si hay una URL IPFS, no hay un archivo local pendiente de subir
+      setFile(null) 
     } else if (!currentIpfsUrl && file === null) {
-      setPreviewUrl(null) // Si no hay URL ni archivo, no hay preview
+      setPreviewUrl(null) 
     }
   }, [currentIpfsUrl, previewUrl, file])
 
@@ -34,7 +34,7 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({ label, theme
       setFile(selectedFile)
       if (selectedFile) {
         setPreviewUrl(URL.createObjectURL(selectedFile))
-        onImageUpload(selectedFile, null) // Notificar que hay un archivo local, IPFS URL es null por ahora
+        onImageUpload(selectedFile, null)
       } else {
         setPreviewUrl(null)
         onImageUpload(null, null)
@@ -52,7 +52,7 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({ label, theme
         if (droppedFile.type.startsWith("image/")) {
           handleFileChange(droppedFile)
         } else {
-          // Podrías añadir un mensaje de error aquí si lo deseas
+          // @to-do add error message
         }
       }
     },
@@ -147,7 +147,7 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({ label, theme
     color: theme.textSecondary,
     fontFamily: "system-ui, -apple-system, sans-serif",
     fontSize: "0.875rem",
-    minHeight: "140px", // Añadir altura mínima fija
+    minHeight: "140px",
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
@@ -156,14 +156,14 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({ label, theme
 
   const previewImageStyles: React.CSSProperties = {
     maxWidth: "100%",
-    maxHeight: "80px", // Reducir un poco para que quepa con el texto
+    maxHeight: "80px",
     borderRadius: "0.5rem",
-    marginTop: "0.5rem", // Reducir margen
+    marginTop: "0.5rem", 
     objectFit: "contain" as const,
   }
 
   const fileInfoStyles: React.CSSProperties = {
-    marginTop: "0.25rem", // Reducir margen
+    marginTop: "0.25rem",
     fontSize: "0.75rem",
     color: theme.textSecondary,
     fontFamily: "system-ui, -apple-system, sans-serif",
@@ -219,7 +219,7 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({ label, theme
               </div>
             )}
             {!file &&
-              currentIpfsUrl && ( // Mostrar URL si no hay archivo local pero sí una URL IPFS
+              currentIpfsUrl && (
                 <div style={fileInfoStyles}>
                   IPFS URL:{" "}
                   <a

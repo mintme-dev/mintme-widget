@@ -7,7 +7,7 @@ import { PhantomWalletAdapter, SolflareWalletAdapter, TorusWalletAdapter } from 
 import { WalletModalProvider, WalletMultiButton } from "@solana/wallet-adapter-react-ui"
 import { clusterApiUrl, Connection, LAMPORTS_PER_SOL } from "@solana/web3.js"
 
-// Importa los estilos CSS para los componentes de UI de la wallet
+// Import CSS styles for wallet UI components
 import "@solana/wallet-adapter-react-ui/styles.css"
 
 const WalletContent = () => {
@@ -15,7 +15,7 @@ const WalletContent = () => {
   const [balance, setBalance] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
 
-  // Obtener balance de la wallet
+  // Fetch wallet balance
   const getBalance = async () => {
     if (!publicKey) return
 
@@ -25,13 +25,13 @@ const WalletContent = () => {
       const balance = await connection.getBalance(publicKey)
       setBalance(balance / LAMPORTS_PER_SOL)
     } catch (error) {
-      console.error("Error obteniendo balance:", error)
+      console.error("Error fetching balance:", error)
     } finally {
       setLoading(false)
     }
   }
 
-  // Obtener balance cuando se conecta la wallet
+  // Fetch balance when wallet is connected
   useEffect(() => {
     if (connected && publicKey) {
       getBalance()
@@ -55,7 +55,7 @@ const WalletContent = () => {
       }}
     >
       <h2 style={{ margin: "0 0 1rem 0", fontSize: "1.5rem" }}>🚀 V3 Mintme Widget</h2>
-      <p style={{ margin: "0 0 1.5rem 0", opacity: 0.9 }}>Conecta tu wallet de Solana para comenzar</p>
+      <p style={{ margin: "0 0 1.5rem 0", opacity: 0.9 }}>Connect your Solana wallet to get started</p>
 
       <div style={{ marginBottom: "1.5rem" }}>
         <WalletMultiButton
@@ -78,7 +78,7 @@ const WalletContent = () => {
           }}
         >
           <div style={{ marginBottom: "1rem" }}>
-            <h3 style={{ margin: "0 0 0.5rem 0", color: "#10B981" }}>✅ Wallet Conectada</h3>
+            <h3 style={{ margin: "0 0 0.5rem 0", color: "#10B981" }}>✅ Wallet Connected</h3>
             <p
               style={{
                 fontSize: "0.9rem",
@@ -96,7 +96,7 @@ const WalletContent = () => {
           <div style={{ marginBottom: "1rem" }}>
             <h4 style={{ margin: "0 0 0.5rem 0" }}>Balance:</h4>
             {loading ? (
-              <p>Cargando...</p>
+              <p>Loading...</p>
             ) : (
               <p
                 style={{
@@ -105,7 +105,7 @@ const WalletContent = () => {
                   color: "#10B981",
                 }}
               >
-                {balance !== null ? `${balance.toFixed(4)} SOL` : "Error al cargar"}
+                {balance !== null ? `${balance.toFixed(4)} SOL` : "Error loading balance"}
               </p>
             )}
           </div>
@@ -124,7 +124,7 @@ const WalletContent = () => {
                 opacity: loading ? 0.6 : 1,
               }}
             >
-              {loading ? "Actualizando..." : "Actualizar Balance"}
+              {loading ? "Refreshing..." : "Refresh Balance"}
             </button>
 
             <button
@@ -138,7 +138,7 @@ const WalletContent = () => {
                 cursor: "pointer",
               }}
             >
-              Desconectar
+              Disconnect
             </button>
           </div>
         </div>
@@ -151,9 +151,9 @@ const WalletContent = () => {
             marginTop: "1rem",
           }}
         >
-          <p style={{ margin: 0, opacity: 0.8 }}>❌ No hay wallet conectada</p>
+          <p style={{ margin: 0, opacity: 0.8 }}>❌ No wallet connected</p>
           <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.9rem", opacity: 0.7 }}>
-            Haz clic en "Select Wallet" para conectar tu wallet de Solana
+            Click on "Select Wallet" to connect your Solana wallet
           </p>
         </div>
       )}
@@ -162,11 +162,11 @@ const WalletContent = () => {
 }
 
 export const MintmeWidget = () => {
-  // Configuración de la red (puedes cambiar a 'mainnet-beta', 'testnet', o 'devnet')
+  // Network configuration (you can switch to 'mainnet-beta', 'testnet', or 'devnet')
   const network = WalletAdapterNetwork.Devnet
   const endpoint = useMemo(() => clusterApiUrl(network), [network])
 
-  // Configuración de wallets soportadas
+  // Supported wallet configuration
   const wallets = useMemo(
     () => [new PhantomWalletAdapter(), new SolflareWalletAdapter({ network }), new TorusWalletAdapter()],
     [network],

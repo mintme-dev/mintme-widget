@@ -2,12 +2,12 @@ import { PinataSDK } from "pinata"
 import type { PinataConfig, PinataUploadResult } from "../types"
 
 /**
- * Sube un objeto JSON a IPFS usando Pinata.
- * @param jsonData El objeto JSON a subir.
- * @param config La configuración de Pinata (apiKey, gateway).
- * @param name Un nombre para el archivo JSON en Pinata.
- * @returns Una promesa que resuelve con el resultado de la subida (URL, ID, hash).
- * @throws Error si la configuración de Pinata es inválida o si la subida falla.
+ * Uploads a JSON object to IPFS using Pinata.
+ * @param jsonData The JSON object to upload.
+ * @param config Pinata configuration (apiKey, gateway).
+ * @param name A name for the JSON file in Pinata.
+ * @returns A promise that resolves with the upload result (URL, ID, hash).
+ * @throws Error if the Pinata configuration is invalid or if the upload fails.
  */
 export const uploadJsonToPinata = async (
   jsonData: object,
@@ -38,8 +38,8 @@ export const uploadJsonToPinata = async (
 
     return {
       url: url,
-      id: uploadResult.id, // ID de Pinata para poder eliminar
-      hash: uploadResult.cid, // Hash IPFS
+      id: uploadResult.id, // Pinata ID (useful for deletion)
+      hash: uploadResult.cid, // IPFS hash
     }
   } catch (error: any) {
     console.error("Error uploading JSON to Pinata:", error)

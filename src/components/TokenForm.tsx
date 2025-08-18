@@ -86,14 +86,14 @@ export const TokenForm: React.FC<TokenFormProps> = ({
     setTransactionError(null)
     setIsSubmittingForm(true)
 
-    // Crear el manager de rollback para IPFS
+    // Rollback to IPFS to prevent no minted data
     const rollbackManager = createIpfsRollbackManager()
 
     try {
       let finalIpfsImageUrl = formData.ipfsImageUrl
       let finalIpfsImageId = formData.ipfsImageId
 
-      // 1. Subir imagen a IPFS si hay un archivo seleccionado
+      // 1. Upload if have a file
       if (formData.imageFile && !finalIpfsImageUrl) {
         if (!pinataConfig?.apiKey) {
           throw new Error("Pinata API Key (JWT) is required for image upload.")
@@ -113,7 +113,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
         handleLog("✅ Image uploaded successfully")
       }
 
-      // 2. Construir el objeto JSON de metadatos
+      // 2. Make JSON metadata
       const metadataJson = {
         name: formData.tokenName,
         symbol: formData.tokenSymbol,
@@ -124,7 +124,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
         image: finalIpfsImageUrl || "",
       }
 
-      // 3. Subir el JSON de metadatos a Pinata
+      // 3. Upload JSON
       if (!pinataConfig?.apiKey) {
         throw new Error("Pinata API Key (JWT) is required for metadata upload.")
       }
@@ -134,7 +134,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
       rollbackManager.metadataId = metadataResult.id
       handleLog("✅ Metadata uploaded successfully")
 
-      // 4. Validar balance de la wallet
+      // 4. Check wallet balance
       handleLog("💰 Validating wallet balance...")
       const hasBalance = await validateWalletBalance(connection, publicKey.toBase58())
       if (!hasBalance) {
@@ -142,7 +142,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
       }
       handleLog("✅ Wallet balance validated")
 
-      // 5. Crear el token usando el SDK Mintme
+      // 5. Mint Token
       handleLog("🪙 Creating token on Solana blockchain...")
       const tokenResult = await createTokenWithMintme(
         {
@@ -157,12 +157,12 @@ export const TokenForm: React.FC<TokenFormProps> = ({
         cluster || "devnet",
         partnerWallet,
         partnerAmount,
-        handleLog, // Pasar el callback de logs
+        handleLog, // Callbacks to logs
       )
 
       handleLog("🎉 Token created successfully!")
 
-      // Agregar información detallada al logger
+      // Add information Logger
       if (tokenResult.tokenAddress) {
         handleLog(`Token Contract Address (CA): ${tokenResult.tokenAddress}`)
       }
@@ -170,11 +170,11 @@ export const TokenForm: React.FC<TokenFormProps> = ({
         handleLog(`Transaction Signature: ${tokenResult.transactionSignature}`)
       }
 
-      // Marcar como completado y mostrar resultados
+      // Finish
       setTransactionCompleted(true)
       setTransactionResult(tokenResult)
 
-      // 6. Llamar onSubmit después de un breve delay para que se vea el mensaje de éxito
+      // 6. Call Onsubmit
       setTimeout(() => {
         onSubmit(
           {
@@ -190,7 +190,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
       console.error("❌ Token creation failed:", error)
       handleLog(`❌ Error: ${error.message}`)
 
-      // Realizar rollback de archivos IPFS si hay configuración de Pinata
+      // Do Rollback IPFS
       if (pinataConfig?.apiKey) {
         handleLog("🔄 Performing IPFS rollback due to error...")
         try {
@@ -202,7 +202,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
         }
       }
 
-      // Limpiar URLs e IDs locales también
+      // CLean Data
       setFormData((prev) => ({
         ...prev,
         ipfsImageUrl: null,
@@ -210,7 +210,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
         ipfsMetadataId: null,
       }))
 
-      // Mostrar error al usuario
+      // Show errors
       let userFriendlyError = "Failed to create token. Please try again."
 
       if (error.message?.includes("User rejected")) {
@@ -352,7 +352,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
 
   return (
     <form style={formStyles} onSubmit={handleSubmit}>
-      {/* Mostrar el costo de transacción cuando la wallet esté conectada */}
+      {/* Show Cost Estimate */}
       <div style={{ height: "1.25rem", marginBottom: "0.5rem" }}>
         {connected && <CostEstimateBadge theme={theme} partnerAmount={partnerAmount} cluster={cluster} />}
       </div>
@@ -486,7 +486,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
           {getButtonText()}
         </button>
 
-        {/* Tooltip personalizado para mejor UX */}
+        {/* Tooltip */}
         {getButtonDisabled() && getTooltipMessage() && (
           <div
             style={{
@@ -507,7 +507,6 @@ export const TokenForm: React.FC<TokenFormProps> = ({
             }}
           >
             {getTooltipMessage()}
-            {/* Flecha del tooltip */}
             <div
               style={{
                 position: "absolute",
@@ -525,7 +524,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
         )}
       </div>
 
-      {/* Agregar el componente TransactionOverlay al final del return, justo antes del cierre del form */}
+      {/* Add component TransactionOverlay*/}
       <TransactionOverlay
         isVisible={showOverlay}
         theme={theme}

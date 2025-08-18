@@ -2,10 +2,10 @@ import { PinataSDK } from "pinata"
 import type { PinataConfig } from "../types"
 
 /**
- * Elimina un archivo de IPFS usando Pinata por ID
- * @param pinataId ID del archivo en Pinata
- * @param config Configuración de Pinata
- * @returns Promise<boolean> - true si se eliminó correctamente
+ * Deletes a file from IPFS using Pinata by ID
+ * @param pinataId ID of the file in Pinata
+ * @param config Pinata configuration
+ * @returns Promise<boolean> - true if successfully deleted
  */
 export const deleteFromPinataById = async (pinataId: string, config: PinataConfig): Promise<boolean> => {
   if (!config.apiKey) {
@@ -19,7 +19,7 @@ export const deleteFromPinataById = async (pinataId: string, config: PinataConfi
       pinataGateway: config.gateway || "gateway.pinata.cloud",
     })
 
-    // Eliminar el archivo usando el ID de Pinata
+    // Delete the file using the Pinata ID
     await pinata.files.public.delete([pinataId])
     console.log(`Successfully deleted Pinata file with ID: ${pinataId}`)
     return true
@@ -30,10 +30,10 @@ export const deleteFromPinataById = async (pinataId: string, config: PinataConfi
 }
 
 /**
- * Elimina múltiples archivos de IPFS por sus IDs
- * @param pinataIds Array de IDs de Pinata para eliminar
- * @param config Configuración de Pinata
- * @returns Promise<number> - Número de archivos eliminados exitosamente
+ * Deletes multiple files from IPFS by their IDs
+ * @param pinataIds Array of Pinata IDs to delete
+ * @param config Pinata configuration
+ * @returns Promise<number> - Number of successfully deleted files
  */
 export const deleteMultipleFromPinataByIds = async (
   pinataIds: (string | null | undefined)[],
@@ -53,14 +53,14 @@ export const deleteMultipleFromPinataByIds = async (
       pinataGateway: config.gateway || "gateway.pinata.cloud",
     })
 
-    // Eliminar todos los archivos de una vez
+    // Delete all files in one batch
     await pinata.files.public.delete(validIds)
     console.log(`Successfully deleted ${validIds.length} Pinata files`)
     return validIds.length
   } catch (error: any) {
     console.error("Error deleting multiple Pinata files:", error)
 
-    // Si falla el borrado en lote, intentar uno por uno
+    // If batch deletion fails, try deleting one by one
     let successCount = 0
     for (const id of validIds) {
       const success = await deleteFromPinataById(id, config)
@@ -73,7 +73,7 @@ export const deleteMultipleFromPinataByIds = async (
 }
 
 /**
- * Interfaz para manejar el rollback de archivos IPFS
+ * Interface for handling IPFS file rollback
  */
 export interface IpfsRollbackManager {
   imageId: string | null
@@ -82,7 +82,7 @@ export interface IpfsRollbackManager {
 }
 
 /**
- * Crea un manager para manejar el rollback de archivos IPFS usando IDs de Pinata
+ * Creates a manager to handle IPFS rollback using Pinata IDs
  * @returns IpfsRollbackManager
  */
 export const createIpfsRollbackManager = (): IpfsRollbackManager => {

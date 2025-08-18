@@ -1,10 +1,10 @@
 import type { Connection, PublicKey, Keypair } from "@solana/web3.js"
 import type { BN } from "@coral-xyz/anchor"
 
-// Tipos específicos para la función createToken del SDK Mintme
+// Types to function createToken SDK Mintme
 export interface CreateTokenOptions {
   connection: Connection
-  payer: Keypair | any // Wallet conectada o keypair
+  payer: Keypair | any // Wallet or keypair
   name: string
   symbol: string
   uniqueKey: string
@@ -25,10 +25,8 @@ export interface CreateTokenResult {
   txSignature?: string
   mint?: string
   error?: string
-  // Otros campos que pueda retornar el SDK
 }
 
-// Función del SDK (para tipado)
 export interface MintmeSDK {
   createToken: (options: CreateTokenOptions) => Promise<CreateTokenResult>
 }
