@@ -1,24 +1,27 @@
 "use client"
 
 import type React from "react"
+import { useState } from "react"
 import type { ThemeColors } from "../styles/themes"
 
 interface CheckboxFieldProps {
   label: string
   checked: boolean
   onChange: (checked: boolean) => void
-  description?: string
+  tooltip?: string
   theme: ThemeColors
 }
 
-export const CheckboxField: React.FC<CheckboxFieldProps> = ({ label, checked, onChange, description, theme }) => {
+export const CheckboxField: React.FC<CheckboxFieldProps> = ({ label, checked, onChange, tooltip, theme }) => {
+  const [showTooltip, setShowTooltip] = useState(false)
+
   const containerStyles: React.CSSProperties = {
-    marginBottom: "1.5rem",
+    marginBottom: "1rem",
   }
 
   const checkboxContainerStyles: React.CSSProperties = {
     display: "flex",
-    alignItems: "flex-start",
+    alignItems: "center",
     gap: "0.75rem",
     cursor: "pointer",
   }
@@ -33,7 +36,6 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({ label, checked, on
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
-    marginTop: "2px",
     transition: "all 0.2s ease",
   }
 
@@ -41,15 +43,61 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({ label, checked, on
     fontSize: "0.8rem",
     fontWeight: "500",
     color: theme.text,
-    marginBottom: "0.25rem",
     fontFamily: "system-ui, -apple-system, sans-serif",
+    display: "flex",
+    alignItems: "center",
+    gap: "0.5rem",
   }
 
-  const descriptionStyles: React.CSSProperties = {
-    fontSize: "0.875rem",
-    color: theme.textSecondary,
-    lineHeight: "1.4",
+  const tooltipContainerStyles: React.CSSProperties = {
+    position: "relative",
+    display: "inline-block",
+  }
+
+  const tooltipStyles: React.CSSProperties = {
+    position: "absolute",
+    bottom: "calc(100% + 8px)",
+    left: "50%",
+    transform: "translateX(-50%)",
+    backgroundColor: theme.cardBackground,
+    color: theme.text,
+    padding: "0.5rem 0.75rem",
+    borderRadius: "0.5rem",
+    fontSize: "0.75rem",
+    boxShadow: theme.shadow,
+    border: `1px solid ${theme.border}`,
+    zIndex: 1000,
+    opacity: showTooltip ? 1 : 0,
+    visibility: showTooltip ? "visible" : "hidden",
+    transition: "opacity 0.2s ease, visibility 0.2s ease",
     fontFamily: "system-ui, -apple-system, sans-serif",
+    lineHeight: "1.3",
+    width: "200px",
+    whiteSpace: "normal",
+  }
+
+  const tooltipArrowStyles: React.CSSProperties = {
+    position: "absolute",
+    top: "100%",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: 0,
+    height: 0,
+    borderLeft: "6px solid transparent",
+    borderRight: "6px solid transparent",
+    borderTop: `6px solid ${theme.border}`,
+  }
+
+  const tooltipArrowInnerStyles: React.CSSProperties = {
+    position: "absolute",
+    top: "-7px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: 0,
+    height: 0,
+    borderLeft: "5px solid transparent",
+    borderRight: "5px solid transparent",
+    borderTop: `5px solid ${theme.cardBackground}`,
   }
 
   return (
@@ -62,9 +110,38 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({ label, checked, on
             </svg>
           )}
         </div>
-        <div>
-          <div style={labelStyles}>{label}</div>
-          {description && <div style={descriptionStyles}>{description}</div>}
+        <div style={labelStyles}>
+          {label}
+          {tooltip && (
+            <div style={tooltipContainerStyles}>
+              <div
+                style={{
+                  width: "13px",
+                  height: "13px",
+                  borderRadius: "50%",
+                  backgroundColor: theme.textSecondary,
+                  color: theme.background,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "10px",
+                  fontWeight: "bold",
+                  cursor: "help",
+                  transition: "background-color 0.2s ease",
+                }}
+                onMouseEnter={() => setShowTooltip(true)}
+                onMouseLeave={() => setShowTooltip(false)}
+              >
+                i
+              </div>
+              <div style={tooltipStyles}>
+                {tooltip}
+                <div style={tooltipArrowStyles}>
+                  <div style={tooltipArrowInnerStyles} />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

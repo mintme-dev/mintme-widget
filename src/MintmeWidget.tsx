@@ -156,7 +156,6 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
   return (
     <div className={`mintme-widget ${className}`} style={widgetStyles}>
       <div style={headerStyles}>
-        <div style={{ width: "36px" }}></div> {/* Spacer for centering */}
         <h1 style={titleStyles}>Create Solana Token</h1>
         <div style={controlsStyles}>
           {/* Theme Toggle */}
@@ -226,7 +225,7 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
       />
 
       {options?.showCredit && (
-        <div style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "0.8rem", color: themeColors.textSecondary }}>
+        <div style={{ textAlign: "center", marginTop: "1rem", fontSize: "0.8rem", color: themeColors.textSecondary }}>
           <a
             href="https://mintme.dev/?utm_source=widget&utm_medium=widget&utm_campaign=widget"
             target="_blank"

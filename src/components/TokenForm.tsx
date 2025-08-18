@@ -9,7 +9,6 @@ import { CheckboxField } from "./CheckboxField"
 import { ImageUploadField } from "./ImageUploadField"
 import { TransactionOverlay } from "./TransactionOverlay"
 import { CostEstimateBadge } from "./CostEstimateBadge"
-import { TransactionCostDisplay } from "./TransactionCostDisplay"
 import { uploadImageToPinata } from "../services/imageUploadService"
 import { uploadJsonToPinata } from "../services/metadataUploadService"
 import { createIpfsRollbackManager } from "../services/pinataCleanupService"
@@ -42,7 +41,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
     tokenName: "",
     tokenSymbol: "",
     decimals: 9,
-    initialSupply: "1000000000",
+    initialSupply: "10000000", // Cambiar de "" a "10000000"
     projectWebsite: "",
     description: "",
     revokeMintAuthority: true,
@@ -143,7 +142,6 @@ export const TokenForm: React.FC<TokenFormProps> = ({
 
       // 5. Crear el token usando el SDK Mintme
       handleLog("🪙 Creating token on Solana blockchain...")
-      handleLog(`🪙 Partner Amount...${partnerAmount}`)
       const tokenResult = await createTokenWithMintme(
         {
           ...formData,
@@ -245,7 +243,8 @@ export const TokenForm: React.FC<TokenFormProps> = ({
       formData.tokenName.trim() !== "" &&
       formData.tokenSymbol.trim() !== "" &&
       formData.initialSupply.trim() !== "" &&
-      formData.decimals >= 0
+      formData.decimals >= 0 &&
+      formData.decimals <= 9
     )
   }
 
@@ -260,11 +259,11 @@ export const TokenForm: React.FC<TokenFormProps> = ({
   }
 
   const sectionTitleStyles: React.CSSProperties = {
-    fontSize: "0.875rem",
+    fontSize: "1rem",
     fontWeight: "600",
     color: theme.text,
-    marginBottom: "1rem",
-    marginTop: "1rem",
+    marginBottom: "0.5rem",
+    marginTop: "0.5rem", // Reduced from 2rem
     fontFamily: "system-ui, -apple-system, sans-serif",
   }
 
@@ -273,7 +272,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
     border: `1px solid ${theme.inputBorder}`,
     borderRadius: "0.5rem",
     padding: "1rem",
-    marginBottom: "1.5rem",
+    marginBottom: "0.8rem",
     display: connected ? "block" : "none",
   }
 
@@ -306,7 +305,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
     if (!formData.tokenName.trim()) missingFields.push("Token Name")
     if (!formData.tokenSymbol.trim()) missingFields.push("Token Symbol")
     if (!formData.initialSupply.trim()) missingFields.push("Initial Supply")
-    if (formData.decimals < 0) missingFields.push("Valid Decimals")
+    if (formData.decimals < 0 || formData.decimals > 9) missingFields.push("Valid Decimals")
 
     if (missingFields.length > 0) {
       return `Missing required fields: ${missingFields.join(", ")}`
@@ -347,21 +346,17 @@ export const TokenForm: React.FC<TokenFormProps> = ({
 
   return (
     <form style={formStyles} onSubmit={handleSubmit}>
-      {/* Información de wallet cuando está conectado */}
+      {/* Mostrar el costo de transacción cuando la wallet esté conectada */}
       <div style={{ height: "1.25rem", marginBottom: "0.5rem" }}>
-        {connected && (
-          <CostEstimateBadge theme={theme} partnerAmount={partnerAmount} cluster={cluster} />
-        )}
+        {connected && <CostEstimateBadge theme={theme} partnerAmount={partnerAmount} cluster={cluster} />}
       </div>
-
-      {/* {connected && <TransactionCostDisplay theme={theme} partnerAmount={partnerAmount} cluster={cluster} />} */}
 
       <div style={fieldsRowStyles}>
         <FormField
           label="Token Name"
           value={formData.tokenName}
           onChange={(value) => updateField("tokenName", value)}
-          placeholder="Ex: My Token"
+          placeholder="My Token"
           required
           theme={theme}
           tooltip="The display name of your token"
@@ -370,7 +365,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
           label="Token Symbol"
           value={formData.tokenSymbol}
           onChange={(value) => updateField("tokenSymbol", value.toUpperCase())}
-          placeholder="Ex: MTM"
+          placeholder="MTK"
           required
           theme={theme}
           tooltip="A short identifier for your token (usually 3-5 characters)"
@@ -384,21 +379,20 @@ export const TokenForm: React.FC<TokenFormProps> = ({
           value={formData.decimals}
           onChange={(value) => updateField("decimals", Number.parseInt(value) || 0)}
           placeholder="9"
-          min={0}
-          max={9}
           required
           theme={theme}
           tooltip="Number of decimal places (9 is standard for most tokens)"
+          min={0}
+          max={9}
         />
         <FormField
           label="Initial Supply"
-          type="number"
           value={formData.initialSupply}
           onChange={(value) => updateField("initialSupply", value)}
-          placeholder="Ex: 1000000000"
+          placeholder="10000000"
           required
           theme={theme}
-          tooltip="The total number of tokens to create"
+          tooltip="The total number of tokens to create (max: 18,446,744,073,709,551,615)"
         />
       </div>
 
@@ -437,7 +431,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
         label="Revoke Mint Authority"
         checked={formData.revokeMintAuthority}
         onChange={(checked) => updateField("revokeMintAuthority", checked)}
-        description="Recommended for fixed supply tokens. This prevents creating more tokens in the future."
+        tooltip="Recommended for fixed supply tokens. This prevents creating more tokens in the future."
         theme={theme}
       />
 
@@ -445,7 +439,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
         label="Revoke Freeze Authority"
         checked={formData.revokeFreezeAuthority}
         onChange={(checked) => updateField("revokeFreezeAuthority", checked)}
-        description="Recommended for most tokens. This prevents freezing token accounts in the future."
+        tooltip="Recommended for most tokens. This prevents freezing token accounts in the future."
         theme={theme}
       />
 
@@ -471,7 +465,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
           type="submit"
           style={buttonStyles}
           disabled={getButtonDisabled()}
-          title={getTooltipMessage()} // Añadir tooltip nativo
+          title={getTooltipMessage()}
           onMouseEnter={(e) => {
             if (!getButtonDisabled()) {
               e.currentTarget.style.backgroundColor = theme.buttonPrimaryHover
@@ -487,7 +481,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
         </button>
 
         {/* Tooltip personalizado para mejor UX */}
-        {getButtonDisabled() && getTooltipMessage() && 1==2 && (
+        {getButtonDisabled() && getTooltipMessage() && (
           <div
             style={{
               position: "absolute",

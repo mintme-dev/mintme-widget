@@ -70,7 +70,7 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({ label, theme
   }, [])
 
   const containerStyles: React.CSSProperties = {
-    marginBottom: "1.5rem",
+    marginBottom: "0.8rem",
     width: "100%",
   }
 

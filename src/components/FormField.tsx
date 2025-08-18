@@ -78,7 +78,6 @@ export const FormField: React.FC<FormFieldProps> = ({
     padding: "0.5rem 0.75rem",
     borderRadius: "0.5rem",
     fontSize: "0.75rem",
-    whiteSpace: "nowrap",
     boxShadow: theme.shadow,
     border: `1px solid ${theme.border}`,
     zIndex: 1000,
@@ -88,6 +87,8 @@ export const FormField: React.FC<FormFieldProps> = ({
     fontFamily: "system-ui, -apple-system, sans-serif",
     lineHeight: "1.3",
     maxWidth: "200px",
+    width: "200px",
+    whiteSpace: "normal",
   }
 
   const tooltipArrowStyles: React.CSSProperties = {
