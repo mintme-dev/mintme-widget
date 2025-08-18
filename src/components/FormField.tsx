@@ -14,6 +14,8 @@ interface FormFieldProps {
   theme: ThemeColors
   tooltip?: string
   fullWidth?: boolean
+  min?: number
+  max?: number
 }
 
 export const FormField: React.FC<FormFieldProps> = ({
@@ -26,6 +28,8 @@ export const FormField: React.FC<FormFieldProps> = ({
   theme,
   tooltip,
   fullWidth = false,
+  min,
+  max,
 }) => {
   const [showTooltip, setShowTooltip] = useState(false)
 
@@ -84,8 +88,6 @@ export const FormField: React.FC<FormFieldProps> = ({
     fontFamily: "system-ui, -apple-system, sans-serif",
     lineHeight: "1.3",
     maxWidth: "200px",
-    width: "200px",
-    whiteSpace: "normal",
   }
 
   const tooltipArrowStyles: React.CSSProperties = {
@@ -110,6 +112,14 @@ export const FormField: React.FC<FormFieldProps> = ({
     borderLeft: "5px solid transparent",
     borderRight: "5px solid transparent",
     borderTop: `5px solid ${theme.cardBackground}`,
+  }
+
+  const handleChange = (newValue: string) => {
+    if (type === "url" && newValue && !newValue.startsWith("http://") && !newValue.startsWith("https://")) {
+      onChange(`https://${newValue}`)
+    } else {
+      onChange(newValue)
+    }
   }
 
   return (
@@ -151,9 +161,11 @@ export const FormField: React.FC<FormFieldProps> = ({
       <input
         type={type}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => handleChange(e.target.value)}
         placeholder={placeholder}
         style={inputStyles}
+        max={max || (type === "number" ? "18446744073709551615" : undefined)}
+        min={min}
         onFocus={(e) => {
           e.target.style.borderColor = theme.buttonPrimary
         }}
