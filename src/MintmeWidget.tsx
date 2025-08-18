@@ -72,12 +72,12 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: "2rem",
+    marginBottom: "0.5rem",
     position: "relative",
   }
 
   const titleStyles: React.CSSProperties = {
-    fontSize: "1.1rem",
+    fontSize: "1rem",
     fontWeight: "700",
     color: themeColors.text,
     margin: "0",

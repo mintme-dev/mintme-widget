@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useCallback, useEffect } from "react" // Añadido useEffect
+import { useState, useCallback, useEffect } from "react"
 import type { PinataConfig } from "../types"
 import type { ThemeColors } from "../styles/themes"
 
@@ -13,15 +13,11 @@ interface ImageUploadFieldProps {
   currentIpfsUrl?: string // Para previsualizar una URL ya existente
 }
 
-export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
-  label,
-  theme,
-  onImageUpload,
-  currentIpfsUrl,
-}) => {
+export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({ label, theme, onImageUpload, currentIpfsUrl }) => {
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentIpfsUrl || null)
   const [isDragging, setIsDragging] = useState(false)
+  const [showTooltip, setShowTooltip] = useState(false)
 
   // Sincronizar previewUrl si currentIpfsUrl cambia desde el exterior (ej. después de una subida exitosa)
   useEffect(() => {
@@ -53,7 +49,7 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
       setIsDragging(false)
       if (e.dataTransfer.files && e.dataTransfer.files[0]) {
         const droppedFile = e.dataTransfer.files[0]
-        if (droppedFile.type.startsWith('image/')) {
+        if (droppedFile.type.startsWith("image/")) {
           handleFileChange(droppedFile)
         } else {
           // Podrías añadir un mensaje de error aquí si lo deseas
@@ -89,10 +85,61 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
     fontFamily: "system-ui, -apple-system, sans-serif",
   }
 
+  const tooltipContainerStyles: React.CSSProperties = {
+    position: "relative",
+    display: "inline-block",
+  }
+
+  const tooltipStyles: React.CSSProperties = {
+    position: "absolute",
+    bottom: "calc(100% + 8px)",
+    left: "50%",
+    transform: "translateX(-50%)",
+    backgroundColor: theme.cardBackground,
+    color: theme.text,
+    padding: "0.5rem 0.75rem",
+    borderRadius: "0.5rem",
+    fontSize: "0.75rem",
+    boxShadow: theme.shadow,
+    border: `1px solid ${theme.border}`,
+    zIndex: 1000,
+    opacity: showTooltip ? 1 : 0,
+    visibility: showTooltip ? "visible" : "hidden",
+    transition: "opacity 0.2s ease, visibility 0.2s ease",
+    fontFamily: "system-ui, -apple-system, sans-serif",
+    lineHeight: "1.3",
+    width: "200px",
+    whiteSpace: "normal",
+  }
+
+  const tooltipArrowStyles: React.CSSProperties = {
+    position: "absolute",
+    top: "100%",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: 0,
+    height: 0,
+    borderLeft: "6px solid transparent",
+    borderRight: "6px solid transparent",
+    borderTop: `6px solid ${theme.border}`,
+  }
+
+  const tooltipArrowInnerStyles: React.CSSProperties = {
+    position: "absolute",
+    top: "-7px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: 0,
+    height: 0,
+    borderLeft: "5px solid transparent",
+    borderRight: "5px solid transparent",
+    borderTop: `5px solid ${theme.cardBackground}`,
+  }
+
   const dropAreaStyles: React.CSSProperties = {
     border: `2px dashed ${isDragging ? theme.buttonPrimary : theme.inputBorder}`,
     borderRadius: "0.5rem",
-    padding: "2rem",
+    padding: "0.3rem",
     textAlign: "center" as const,
     cursor: "pointer",
     backgroundColor: isDragging ? `${theme.buttonPrimary}10` : theme.inputBackground,
@@ -100,18 +147,23 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
     color: theme.textSecondary,
     fontFamily: "system-ui, -apple-system, sans-serif",
     fontSize: "0.875rem",
+    minHeight: "140px", // Añadir altura mínima fija
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
   }
 
   const previewImageStyles: React.CSSProperties = {
     maxWidth: "100%",
-    maxHeight: "200px",
+    maxHeight: "80px", // Reducir un poco para que quepa con el texto
     borderRadius: "0.5rem",
-    marginTop: "1rem",
+    marginTop: "0.5rem", // Reducir margen
     objectFit: "contain" as const,
   }
 
   const fileInfoStyles: React.CSSProperties = {
-    marginTop: "0.5rem",
+    marginTop: "0.25rem", // Reducir margen
     fontSize: "0.75rem",
     color: theme.textSecondary,
     fontFamily: "system-ui, -apple-system, sans-serif",
@@ -121,23 +173,36 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
     <div style={containerStyles}>
       <label style={labelStyles}>
         {label}
-        <div style={{
-          width: "16px",
-          height: "16px",
-          borderRadius: "50%",
-          backgroundColor: theme.textSecondary,
-          color: theme.background,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "12px",
-          fontWeight: "bold",
-          cursor: "help",
-        }} title="Upload an image for your token. Supported formats: PNG, JPG, GIF, SVG">
-          i
+        <div style={tooltipContainerStyles}>
+          <div
+            style={{
+              width: "13px",
+              height: "13px",
+              borderRadius: "50%",
+              backgroundColor: theme.textSecondary,
+              color: theme.background,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "10px",
+              fontWeight: "bold",
+              cursor: "help",
+              transition: "background-color 0.2s ease",
+            }}
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+          >
+            i
+          </div>
+          <div style={tooltipStyles}>
+            Upload an image for your token. Supported formats: PNG, JPG, GIF, SVG (max 10MB)
+            <div style={tooltipArrowStyles}>
+              <div style={tooltipArrowInnerStyles} />
+            </div>
+          </div>
         </div>
       </label>
-      
+
       <div
         style={dropAreaStyles}
         onDrop={handleDrop}
@@ -153,16 +218,24 @@ export const ImageUploadField: React.FC<ImageUploadFieldProps> = ({
                 {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
               </div>
             )}
-            {!file && currentIpfsUrl && ( // Mostrar URL si no hay archivo local pero sí una URL IPFS
-              <div style={fileInfoStyles}>
-                IPFS URL: <a href={currentIpfsUrl} target="_blank" rel="noopener noreferrer" style={{ color: theme.buttonPrimary, textDecoration: "underline" }}>{currentIpfsUrl.substring(0, 30)}...</a>
-              </div>
-            )}
+            {!file &&
+              currentIpfsUrl && ( // Mostrar URL si no hay archivo local pero sí una URL IPFS
+                <div style={fileInfoStyles}>
+                  IPFS URL:{" "}
+                  <a
+                    href={currentIpfsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: theme.buttonPrimary, textDecoration: "underline" }}
+                  >
+                    {currentIpfsUrl.substring(0, 30)}...
+                  </a>
+                </div>
+              )}
           </div>
         ) : (
           <div>
-            <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>📁</div>
-            <p style={{ margin: "0 0 0.5rem 0" }}>Drag & drop an image here</p>
+            <p style={{ margin: "0 0 0.5rem 0" }}>📁 Drag & drop an image here</p>
             <p style={{ margin: "0", fontSize: "0.75rem", opacity: 0.7 }}>or click to select</p>
             <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.75rem", opacity: 0.7 }}>
               Supported: PNG, JPG, GIF, SVG (max 10MB)

@@ -74,14 +74,14 @@ export const CostEstimateOverlay: React.FC<CostEstimateOverlayProps> = ({
     alignItems: "center",
     justifyContent: "center",
     zIndex: 1000,
-    padding: "1rem",
+    padding: "0.5rem",
     borderRadius: "1rem",
   }
 
   const modalStyles: React.CSSProperties = {
     backgroundColor: theme.cardBackground,
     borderRadius: "1rem",
-    padding: "1.5rem",
+    padding: "1rem",
     width: "100%",
     maxWidth: "400px",
     border: `1px solid ${theme.border}`,
@@ -92,13 +92,13 @@ export const CostEstimateOverlay: React.FC<CostEstimateOverlayProps> = ({
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: "1.5rem",
-    paddingBottom: "1rem",
+    marginBottom: "0.5rem",
+    paddingBottom: "0.5rem",
     borderBottom: `1px solid ${theme.border}`,
   }
 
   const titleStyles: React.CSSProperties = {
-    fontSize: "1.1rem",
+    fontSize: "1rem",
     fontWeight: "700",
     color: theme.text,
     margin: 0,
@@ -108,7 +108,7 @@ export const CostEstimateOverlay: React.FC<CostEstimateOverlayProps> = ({
   const closeButtonStyles: React.CSSProperties = {
     background: "none",
     border: "none",
-    fontSize: "1.5rem",
+    fontSize: "0.8rem",
     cursor: "pointer",
     color: theme.textSecondary,
     padding: "0.25rem",
@@ -120,7 +120,7 @@ export const CostEstimateOverlay: React.FC<CostEstimateOverlayProps> = ({
     display: "flex",
     justifyContent: "space-between",
     marginBottom: "0.75rem",
-    fontSize: "0.875rem",
+    fontSize: "0.8rem",
     color: theme.text,
   }
 
@@ -130,13 +130,13 @@ export const CostEstimateOverlay: React.FC<CostEstimateOverlayProps> = ({
     marginTop: "1rem",
     paddingTop: "1rem",
     borderTop: `1px solid ${theme.border}`,
-    fontSize: "1rem",
+    fontSize: "0.8rem",
     fontWeight: "600",
     color: theme.text,
   }
 
   const balanceInfoStyles: React.CSSProperties = {
-    fontSize: "0.875rem",
+    fontSize: "0.8rem",
     color: theme.textSecondary,
     marginTop: "1rem",
     padding: "0.75rem",
@@ -190,7 +190,7 @@ export const CostEstimateOverlay: React.FC<CostEstimateOverlayProps> = ({
 
             {walletBalance && (
               <div style={balanceInfoStyles}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0rem" }}>
                   <span>Your Balance:</span>
                   <span style={{ fontFamily: "monospace" }}>{walletBalance.balanceSOL.toFixed(6)} SOL</span>
                 </div>

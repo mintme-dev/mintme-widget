@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { useRef, useEffect } from "react"
 import type { ThemeColors, TokenCreationResult } from "../types"
 
 interface TransactionOverlayProps {
@@ -24,6 +25,15 @@ export const TransactionOverlay: React.FC<TransactionOverlayProps> = ({
   cluster,
   onClose,
 }) => {
+  const logsContainerRef = useRef<HTMLDivElement>(null)
+
+  // Auto-scroll hacia abajo cuando se agreguen nuevos logs
+  useEffect(() => {
+    if (logsContainerRef.current) {
+      logsContainerRef.current.scrollTop = logsContainerRef.current.scrollHeight
+    }
+  }, [logs])
+
   if (!isVisible) return null
 
   const getExplorerUrl = (signature: string, type: "tx" | "token" = "tx") => {
@@ -224,7 +234,7 @@ export const TransactionOverlay: React.FC<TransactionOverlayProps> = ({
           </button>
         </div>
 
-        <div style={logsContainerStyles}>
+        <div style={logsContainerStyles} ref={logsContainerRef}>
           {logs.map((log, index) => (
             <div key={index} style={logItemStyles}>
               {log}
@@ -259,43 +269,59 @@ export const TransactionOverlay: React.FC<TransactionOverlayProps> = ({
         )}
 
         {isCompleted && result && !error && (
-			<>
-				<div style={buttonsContainerStyles}>
-					{result.transactionSignature && (
-						<a
-						href={getExplorerUrl(result.transactionSignature, "tx")}
-						target="_blank"
-						rel="noopener noreferrer"
-						style={buttonStyles}
-						onMouseEnter={(e) => {
-							e.currentTarget.style.backgroundColor = theme.buttonPrimaryHover
-						}}
-						onMouseLeave={(e) => {
-							e.currentTarget.style.backgroundColor = theme.buttonPrimary
-						}}
-						>
-						🔍 View Transaction
-						</a>
-					)}
+          <div style={successContainerStyles}>
+            <div style={successTitleStyles}>🎉 Your token has been created successfully!</div>
 
-					{result.tokenAddress && (
-						<a
-						href={getExplorerUrl(result.tokenAddress, "token")}
-						target="_blank"
-						rel="noopener noreferrer"
-						style={buttonStyles}
-						onMouseEnter={(e) => {
-							e.currentTarget.style.backgroundColor = theme.buttonPrimaryHover
-						}}
-						onMouseLeave={(e) => {
-							e.currentTarget.style.backgroundColor = theme.buttonPrimary
-						}}
-						>
-						🪙 View Token
-						</a>
-					)}
-					</div>
-		  	</>
+            {result.tokenAddress && (
+              <div style={{ marginBottom: "1.5rem" }}>
+                <div style={labelStyles}>Token Contract Address (CA):</div>
+                <div style={addressBoxStyles}>{result.tokenAddress}</div>
+              </div>
+            )}
+
+            {result.transactionSignature && (
+              <div style={{ marginBottom: "1.5rem" }}>
+                <div style={labelStyles}>Transaction Signature:</div>
+                <div style={addressBoxStyles}>{result.transactionSignature}</div>
+              </div>
+            )}
+
+            <div style={buttonsContainerStyles}>
+              {result.transactionSignature && (
+                <a
+                  href={getExplorerUrl(result.transactionSignature, "tx")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={buttonStyles}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.buttonPrimaryHover
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.buttonPrimary
+                  }}
+                >
+                  🔍 View Transaction
+                </a>
+              )}
+
+              {result.tokenAddress && (
+                <a
+                  href={getExplorerUrl(result.tokenAddress, "token")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={buttonStyles}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.buttonPrimaryHover
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.buttonPrimary
+                  }}
+                >
+                  🪙 View Token
+                </a>
+              )}
+            </div>
+          </div>
         )}
 
         <style>

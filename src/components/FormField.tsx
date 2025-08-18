@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { useState } from "react"
 import type { ThemeColors } from "../styles/themes"
 
 interface FormFieldProps {
@@ -26,8 +27,10 @@ export const FormField: React.FC<FormFieldProps> = ({
   tooltip,
   fullWidth = false,
 }) => {
+  const [showTooltip, setShowTooltip] = useState(false)
+
   const fieldStyles: React.CSSProperties = {
-    marginBottom: "1rem",
+    marginBottom: "0.5rem",
     width: fullWidth ? "100%" : "calc(50% - 0.5rem)",
   }
 
@@ -56,18 +59,57 @@ export const FormField: React.FC<FormFieldProps> = ({
     boxSizing: "border-box" as const,
   }
 
+  const tooltipContainerStyles: React.CSSProperties = {
+    position: "relative",
+    display: "inline-block",
+  }
+
   const tooltipStyles: React.CSSProperties = {
-    width: "16px",
-    height: "16px",
-    borderRadius: "50%",
-    backgroundColor: theme.textSecondary,
-    color: theme.background,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "12px",
-    fontWeight: "bold",
-    cursor: "help",
+    position: "absolute",
+    bottom: "calc(100% + 8px)",
+    left: "50%",
+    transform: "translateX(-50%)",
+    backgroundColor: theme.cardBackground,
+    color: theme.text,
+    padding: "0.5rem 0.75rem",
+    borderRadius: "0.5rem",
+    fontSize: "0.75rem",
+    whiteSpace: "nowrap",
+    boxShadow: theme.shadow,
+    border: `1px solid ${theme.border}`,
+    zIndex: 1000,
+    opacity: showTooltip ? 1 : 0,
+    visibility: showTooltip ? "visible" : "hidden",
+    transition: "opacity 0.2s ease, visibility 0.2s ease",
+    fontFamily: "system-ui, -apple-system, sans-serif",
+    lineHeight: "1.3",
+    maxWidth: "200px",
+    width: "200px",
+    whiteSpace: "normal",
+  }
+
+  const tooltipArrowStyles: React.CSSProperties = {
+    position: "absolute",
+    top: "100%",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: 0,
+    height: 0,
+    borderLeft: "6px solid transparent",
+    borderRight: "6px solid transparent",
+    borderTop: `6px solid ${theme.border}`,
+  }
+
+  const tooltipArrowInnerStyles: React.CSSProperties = {
+    position: "absolute",
+    top: "-7px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: 0,
+    height: 0,
+    borderLeft: "5px solid transparent",
+    borderRight: "5px solid transparent",
+    borderTop: `5px solid ${theme.cardBackground}`,
   }
 
   return (
@@ -76,8 +118,33 @@ export const FormField: React.FC<FormFieldProps> = ({
         {label}
         {required && <span style={{ color: "#ef4444" }}>*</span>}
         {tooltip && (
-          <div style={tooltipStyles} title={tooltip}>
-            i
+          <div style={tooltipContainerStyles}>
+            <div
+              style={{
+                width: "13px",
+                height: "13px",
+                borderRadius: "50%",
+                backgroundColor: theme.textSecondary,
+                color: theme.background,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "10px",
+                fontWeight: "bold",
+                cursor: "help",
+                transition: "background-color 0.2s ease",
+              }}
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
+            >
+              i
+            </div>
+            <div style={tooltipStyles}>
+              {tooltip}
+              <div style={tooltipArrowStyles}>
+                <div style={tooltipArrowInnerStyles} />
+              </div>
+            </div>
           </div>
         )}
       </label>
