@@ -55,7 +55,7 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
   }
 
   const widgetStyles: React.CSSProperties = {
-    position: "relative", // Añadir esta línea
+    position: "relative",
     maxWidth: "600px",
     margin: "0 auto",
     padding: "1rem",
@@ -66,19 +66,19 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
     fontFamily: "system-ui, -apple-system, sans-serif",
     color: themeColors.text,
     transition: "all 0.3s ease",
-    overflow: "hidden", // Añadir para que el overlay no se salga
+    overflow: "hidden",
   }
 
   const headerStyles: React.CSSProperties = {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: "0.5rem",
+    marginBottom: "0.4rem",
     position: "relative",
   }
 
   const titleStyles: React.CSSProperties = {
-    fontSize: "1rem",
+    fontSize: "1.1rem",
     fontWeight: "700",
     color: themeColors.text,
     margin: "0",
@@ -159,7 +159,6 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
       <div style={headerStyles}>
         <h1 style={titleStyles}>Create Solana Token</h1>
         <div style={controlsStyles}>
-          {/* Theme Toggle */}
           <button
             style={iconButtonStyles}
             onClick={() => setCurrentTheme(currentTheme === "light" ? "dark" : "light")}
@@ -174,7 +173,6 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
             {currentTheme === "light" ? "🌙" : "☀️"}
           </button>
 
-          {/* Wallet Info */}
           {connected && publicKey ? (
             <div style={{ position: "relative" }}>
               <button
@@ -211,7 +209,7 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
               )}
             </div>
           ) : (
-            <div style={{ width: "36px" }}></div> // Spacer when not connected
+            <div style={{ width: "36px" }}></div>
           )}
         </div>
       </div>
@@ -227,7 +225,7 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
       />
 
       {options?.showCredit && (
-        <div style={{ textAlign: "center", marginTop: "1rem", fontSize: "0.8rem", color: themeColors.textSecondary }}>
+        <div style={{ textAlign: "center", marginTop: "1.5rem", fontSize: "0.8rem", color: themeColors.textSecondary }}>
           <a
             href="https://mintme.dev/?utm_source=widget&utm_medium=widget&utm_campaign=widget"
             target="_blank"
@@ -239,7 +237,6 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
         </div>
       )}
 
-      {/* Click outside to close tooltip */}
       {showWalletTooltip && (
         <div
           style={{
@@ -257,7 +254,7 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
   )
 }
 
-export const MintmeWidget: React.FC<MintmeWidgetProps> = ({ cluster = "devnet", ...props }) => {
+export const MintmeWidget: React.FC<MintmeWidgetProps> = ({ cluster = "devnet", endpoint, ...props }) => {
   const solanaNetwork = (cluster: string): WalletAdapterNetwork => {
     switch (cluster) {
       case "mainnet-beta":
@@ -272,7 +269,7 @@ export const MintmeWidget: React.FC<MintmeWidgetProps> = ({ cluster = "devnet", 
   }
 
   return (
-    <WalletContextProvider network={solanaNetwork(cluster)}>
+    <WalletContextProvider network={solanaNetwork(cluster)} endpoint={endpoint}>
       <MintmeWidgetContent {...props} cluster={cluster} />
     </WalletContextProvider>
   )

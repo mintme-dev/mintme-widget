@@ -2,15 +2,15 @@ import type React from "react"
 import type { WalletAdapterNetwork } from "@solana/wallet-adapter-base"
 
 export interface PinataConfig {
-  apiKey: string // JWT token para Pinata
-  apiSecret?: string // Opcional, para compatibilidad con versiones anteriores
-  gateway?: string // Gateway personalizado, por defecto "gateway.pinata.cloud"
+  apiKey: string // JWT token for Pinata
+  apiSecret?: string // Optional, for backward compatibility
+  gateway?: string // Custom gateway, defaults to "gateway.pinata.cloud"
 }
 
 export interface PinataUploadResult {
-  url: string // URL IPFS completa
-  id: string // ID de Pinata para poder eliminar el archivo
-  hash: string // Hash IPFS
+  url: string // Complete IPFS URL
+  id: string // Pinata ID to be able to delete the file
+  hash: string // IPFS hash
 }
 
 export interface TokenData {
@@ -24,22 +24,23 @@ export interface TokenData {
   revokeFreezeAuthority: boolean
   imageFile?: File | null
   ipfsImageUrl?: string
-  ipfsImageId?: string // ID de Pinata para la imagen
-  ipfsMetadataId?: string // ID de Pinata para los metadatos
+  ipfsImageId?: string // Pinata ID for the image
+  ipfsMetadataId?: string // Pinata ID for the metadata
 }
 
 export interface TokenCreationResult {
   transactionSignature?: string
   tokenAddress?: string
-  metadataUri?: string // URL de los metadatos en IPFS
+  metadataUri?: string // Metadata URL on IPFS
 }
 
 export type Theme = "light" | "dark" | "system"
 
 export interface MintmeWidgetProps {
   onSubmit?: (tokenData: TokenData, result: TokenCreationResult) => void
-  onLog?: (message: string) => void // New logger prop
+  onLog?: (message: string) => void // Logger prop
   cluster?: "mainnet-beta" | "testnet" | "devnet"
+  endpoint?: string // Custom RPC endpoint
   pinataConfig?: PinataConfig
   partnerWallet?: string
   partnerAmount?: number
@@ -56,5 +57,5 @@ export interface WalletContextManagerProps {
   endpoint?: string
 }
 
-// Re-exportar tipos de Mintme
+// Re-export Mintme types
 export type { MintmeConfig, MintmeResult, MintmeSDK } from "./mintme"
