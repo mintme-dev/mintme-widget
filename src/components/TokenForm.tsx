@@ -42,7 +42,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
     tokenName: "",
     tokenSymbol: "",
     decimals: 9,
-    initialSupply: "",
+    initialSupply: "1000000000",
     projectWebsite: "",
     description: "",
     revokeMintAuthority: true,
@@ -361,7 +361,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
           label="Token Name"
           value={formData.tokenName}
           onChange={(value) => updateField("tokenName", value)}
-          placeholder="My Token"
+          placeholder="Ex: My Token"
           required
           theme={theme}
           tooltip="The display name of your token"
@@ -370,7 +370,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
           label="Token Symbol"
           value={formData.tokenSymbol}
           onChange={(value) => updateField("tokenSymbol", value.toUpperCase())}
-          placeholder="MTK"
+          placeholder="Ex: MTM"
           required
           theme={theme}
           tooltip="A short identifier for your token (usually 3-5 characters)"
@@ -384,15 +384,18 @@ export const TokenForm: React.FC<TokenFormProps> = ({
           value={formData.decimals}
           onChange={(value) => updateField("decimals", Number.parseInt(value) || 0)}
           placeholder="9"
+          min={0}
+          max={9}
           required
           theme={theme}
           tooltip="Number of decimal places (9 is standard for most tokens)"
         />
         <FormField
           label="Initial Supply"
+          type="number"
           value={formData.initialSupply}
           onChange={(value) => updateField("initialSupply", value)}
-          placeholder="1000000000"
+          placeholder="Ex: 1000000000"
           required
           theme={theme}
           tooltip="The total number of tokens to create"
