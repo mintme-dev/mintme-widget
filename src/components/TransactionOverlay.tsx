@@ -2,7 +2,8 @@
 
 import type React from "react"
 import { useRef, useEffect, useState } from "react"
-import type { ThemeColors, TokenCreationResult } from "../types"
+import type { ThemeColors } from "../styles/themes"
+import type { TokenCreationResult } from "../types/index"
 
 interface TransactionOverlayProps {
   isVisible: boolean

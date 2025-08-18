@@ -1,5 +1,5 @@
 import { PinataSDK } from "pinata"
-import type { PinataConfig, PinataUploadResult } from "../types"
+import type { PinataConfig, PinataUploadResult } from "../types/index"
 
 /**
  * Upload file to IPFS Pinata

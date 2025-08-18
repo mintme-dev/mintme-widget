@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useConnection, useWallet } from "@solana/wallet-adapter-react"
-import type { ThemeColors } from "../types"
+import type { ThemeColors } from "../styles/themes"
 import {
   estimateTokenCreationCost,
   checkWalletBalance,

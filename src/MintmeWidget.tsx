@@ -7,7 +7,7 @@ import { useWallet } from "@solana/wallet-adapter-react"
 import { TokenForm } from "./components/TokenForm"
 import { WalletContextProvider } from "./components/WalletProvider"
 import { themes, getInitialTheme, getSystemTheme } from "./styles/themes"
-import type { MintmeWidgetProps, TokenData, TokenCreationResult } from "./types"
+import type { MintmeWidgetProps, TokenData, TokenCreationResult } from "./types/index"
 
 const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
   defaultTheme = "dark",
