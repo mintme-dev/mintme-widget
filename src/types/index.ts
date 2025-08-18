@@ -38,6 +38,7 @@ export type Theme = "light" | "dark" | "system"
 
 export interface MintmeWidgetProps {
   onSubmit?: (tokenData: TokenData, result: TokenCreationResult) => void
+  onLog?: (message: string) => void // New logger prop
   cluster?: "mainnet-beta" | "testnet" | "devnet"
   pinataConfig?: PinataConfig
   partnerWallet?: string

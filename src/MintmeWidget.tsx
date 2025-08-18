@@ -12,6 +12,7 @@ import type { MintmeWidgetProps, TokenData, TokenCreationResult } from "./types"
 const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
   defaultTheme = "dark",
   onSubmit,
+  onLog,
   className = "",
   pinataConfig,
   partnerWallet,
@@ -217,6 +218,7 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
 
       <TokenForm
         onSubmit={handleSubmit}
+        onLog={onLog}
         theme={themeColors}
         pinataConfig={pinataConfig}
         cluster={cluster}

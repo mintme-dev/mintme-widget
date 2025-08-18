@@ -18,6 +18,7 @@ import { useConnection } from "@solana/wallet-adapter-react"
 
 interface TokenFormProps {
   onSubmit: (data: TokenData, result: TokenCreationResult) => void
+  onLog?: (message: string) => void // Add this line
   theme: ThemeColors
   pinataConfig?: PinataConfig
   cluster?: "mainnet-beta" | "testnet" | "devnet"
@@ -27,6 +28,7 @@ interface TokenFormProps {
 
 export const TokenForm: React.FC<TokenFormProps> = ({
   onSubmit,
+  onLog, // Add this line
   theme,
   pinataConfig,
   cluster,
@@ -262,8 +264,8 @@ export const TokenForm: React.FC<TokenFormProps> = ({
     fontSize: "1rem",
     fontWeight: "600",
     color: theme.text,
-    marginBottom: "0.5rem",
-    marginTop: "0.5rem", // Reduced from 2rem
+    marginBottom: "1rem",
+    marginTop: "1.5rem", // Reduced from 2rem
     fontFamily: "system-ui, -apple-system, sans-serif",
   }
 
@@ -272,7 +274,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
     border: `1px solid ${theme.inputBorder}`,
     borderRadius: "0.5rem",
     padding: "1rem",
-    marginBottom: "0.8rem",
+    marginBottom: "1.5rem",
     display: connected ? "block" : "none",
   }
 
@@ -332,7 +334,11 @@ export const TokenForm: React.FC<TokenFormProps> = ({
 
   // Crear función para manejar logs:
   const handleLog = (message: string) => {
-    setTransactionLogs((prev) => [...prev, `${new Date().toLocaleTimeString()}: ${message}`])
+    const timestampedMessage = `${new Date().toLocaleTimeString()}: ${message}`
+    setTransactionLogs((prev) => [...prev, timestampedMessage])
+
+    // Also call the external logger if provided
+    onLog?.(message)
   }
 
   // Crear función para cerrar el overlay:
