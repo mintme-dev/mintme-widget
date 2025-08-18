@@ -121,7 +121,7 @@ export const createTokenWithMintme = async (
       revokeMint: tokenData.revokeMintAuthority,
       revokeFreeze: tokenData.revokeFreezeAuthority,
       partnerWallet: partnerWallet,
-      partnerAmount: partnerAmount || 0,
+      partnerAmount: partnerAmount ? partnerAmount * 1_000_000_000 : 0,
       logger: (message: string) => {
         console.log(`[Mintme SDK]: ${message}`)
         onLog?.(message) // Send log to callback
