@@ -19,6 +19,7 @@
     "dev": "vite build --watch --mode development",
     "dev:fast": "vite build --watch --mode development --minify false",
     "dev:debug": "NODE_ENV=development vite build --watch --mode development --minify false --sourcemap",
+    "build:types": "tsc --emitDeclarationOnly --pretty",
     "build": "npm run build:types && vite build",
     "preview": "vite preview"
   },
