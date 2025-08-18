@@ -1,5 +1,5 @@
 import type { Connection, PublicKey, Keypair } from "@solana/web3.js"
-import type { BN } from "@coral-xyz/anchor"
+// import type { BN } from "@coral-xyz/anchor"
 
 // Types to function createToken SDK Mintme
 export interface CreateTokenOptions {
@@ -9,12 +9,12 @@ export interface CreateTokenOptions {
   symbol: string
   uniqueKey: string
   decimals?: number
-  initialSupply?: number | string | BN
+  initialSupply?: number | string // | BN
   uri?: string
   revokeMint?: boolean
   revokeFreeze?: boolean
   partnerWallet?: string | PublicKey
-  partnerAmount?: number | string | BN
+  partnerAmount?: number | string // | BN
   programId?: string | PublicKey
   idl?: string | object
   logger?: Function

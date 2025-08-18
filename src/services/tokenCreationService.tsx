@@ -1,7 +1,6 @@
 import type { Connection } from "@solana/web3.js"
 import type { WalletContextState } from "@solana/wallet-adapter-react"
-import type { TokenData, TokenCreationResult } from "../types"
-import type { CreateTokenOptions, CreateTokenResult } from "../types/mintme"
+import type { TokenData, TokenCreationResult } from "../types/index"
 
 type LogCallback = (message: string) => void
 
@@ -16,15 +15,14 @@ const getPayerFromWallet = (walletContext: WalletContextState) => {
   }
 
   // Verify that the adapter has the necessary methods
-  if (!walletContext.wallet.adapter.signTransaction) {
-    throw new Error("Wallet adapter does not support signing transactions")
+  if (!walletContext.wallet.adapter.sendTransaction) {
+    throw new Error("Wallet adapter does not support sending transactions")
   }
 
   // Create payer object compatible with SDK
   const payer = {
     publicKey: walletContext.publicKey,
-    signTransaction: walletContext.wallet.adapter.signTransaction.bind(walletContext.wallet.adapter),
-    signAllTransactions: walletContext.wallet.adapter.signAllTransactions?.bind(walletContext.wallet.adapter),
+    sendTransaction: walletContext.wallet.adapter.sendTransaction.bind(walletContext.wallet.adapter),
   }
 
   return payer
@@ -101,53 +99,56 @@ export const createTokenWithMintme = async (
     const payer = getPayerFromWallet(walletContext)
 
     // Import createToken function dynamically
-    const { createToken } = await import("mintme-sdk")
+    // const { createToken } = await import("mintme-sdk")
+
+    // Temporary implementation:
+    throw new Error("Token creation temporarily disabled - SDK integration in progress")
 
     // Convert initial supply considering decimals
-    const convertedSupply = convertInitialSupply(tokenData.initialSupply, tokenData.decimals)
+    // const convertedSupply = convertInitialSupply(tokenData.initialSupply, tokenData.decimals)
 
-    onLog?.(`Converting supply: ${tokenData.initialSupply} tokens = ${convertedSupply} base units`)
+    // onLog?.(`Converting supply: ${tokenData.initialSupply} tokens = ${convertedSupply} base units`)
 
     // Prepare options for createToken
-    const createTokenOptions: CreateTokenOptions = {
-      connection: connection,
-      payer: payer,
-      name: tokenData.tokenName,
-      symbol: tokenData.tokenSymbol,
-      uniqueKey: Date.now().toString(),
-      decimals: tokenData.decimals,
-      initialSupply: convertedSupply, // Use converted supply as string
-      uri: metadataUri,
-      revokeMint: tokenData.revokeMintAuthority,
-      revokeFreeze: tokenData.revokeFreezeAuthority,
-      partnerWallet: partnerWallet,
-      partnerAmount: partnerAmount ? partnerAmount * 1_000_000_000 : 0,
-      logger: (message: string) => {
-        console.log(`[Mintme SDK]: ${message}`)
-        onLog?.(message) // Send log to callback
-      },
-    }
+    // const createTokenOptions: CreateTokenOptions = {
+    //   connection: connection,
+    //   payer: payer,
+    //   name: tokenData.tokenName,
+    //   symbol: tokenData.tokenSymbol,
+    //   uniqueKey: Date.now().toString(),
+    //   decimals: tokenData.decimals,
+    //   initialSupply: convertedSupply, // Use converted supply as string
+    //   uri: metadataUri,
+    //   revokeMint: tokenData.revokeMintAuthority,
+    //   revokeFreeze: tokenData.revokeFreezeAuthority,
+    //   partnerWallet: partnerWallet,
+    //   partnerAmount: partnerAmount ? partnerAmount * 1_000_000_000 : 0,
+    //   logger: (message: string) => {
+    //     console.log(`[Mintme SDK]: ${message}`)
+    //     onLog?.(message) // Send log to callback
+    //   },
+    // }
 
-    console.log("Creating token with Mintme SDK createToken function:", {
-      ...createTokenOptions,
-      payer: walletContext.publicKey.toBase58(), // Only show public address in log
-      initialSupply: `${tokenData.initialSupply} (${convertedSupply} base units)`,
-    })
+    // console.log("Creating token with Mintme SDK createToken function:", {
+    //   ...createTokenOptions,
+    //   payer: walletContext.publicKey.toBase58(), // Only show public address in log
+    //   initialSupply: `${tokenData.initialSupply} (${convertedSupply} base units)`,
+    // })
 
     // Call createToken function from SDK
-    const result: CreateTokenResult = await createToken(createTokenOptions)
+    // const result: CreateTokenResult = await createToken(createTokenOptions)
 
-    if (result.success && result.txSignature) {
-      console.log("Token created successfully:", result)
+    // if (result.success && result.txSignature) {
+    //   console.log("Token created successfully:", result)
 
-      return {
-        transactionSignature: result.txSignature,
-        tokenAddress: result.mint,
-        metadataUri: metadataUri,
-      }
-    } else {
-      throw new Error(result.error || "Token creation failed")
-    }
+    //   return {
+    //     transactionSignature: result.txSignature,
+    //     tokenAddress: result.mint,
+    //     metadataUri: metadataUri,
+    //   }
+    // } else {
+    //   throw new Error(result.error || "Token creation failed")
+    // }
   } catch (error: any) {
     console.error("Error creating token with Mintme SDK:", error)
 

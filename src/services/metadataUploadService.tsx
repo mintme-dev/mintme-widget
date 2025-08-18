@@ -1,5 +1,5 @@
 import { PinataSDK } from "pinata"
-import type { PinataConfig, PinataUploadResult } from "../types"
+import type { PinataConfig, PinataUploadResult } from "../types/index"
 
 /**
  * Uploads a JSON object to IPFS using Pinata.
@@ -25,7 +25,7 @@ export const uploadJsonToPinata = async (
     })
 
     const uploadResult = await pinata.upload.public.json(jsonData, {
-      pinataMetadata: {
+      metadata: {
         name: `${name}_metadata.json`,
       },
     })

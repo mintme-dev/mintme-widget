@@ -8,11 +8,12 @@ import { FormField } from "./FormField"
 import { CheckboxField } from "./CheckboxField"
 import { ImageUploadField } from "./ImageUploadField"
 import { TransactionOverlay } from "./TransactionOverlay"
-import { CostEstimateBadge } from "./CostEstimateBadge"
+import { CostEstimateBadge } from "./CostestimateBadge"
 import { uploadImageToPinata } from "../services/imageUploadService"
 import { uploadJsonToPinata } from "../services/metadataUploadService"
 import { createIpfsRollbackManager } from "../services/pinataCleanupService"
-import type { TokenData, ThemeColors, PinataConfig, TokenCreationResult } from "../types"
+import type { ThemeColors } from "../styles/themes"
+import type { TokenData, PinataConfig, TokenCreationResult } from "../types/index"
 import { createTokenWithMintme, validateWalletBalance } from "../services/tokenCreationService"
 import { useConnection } from "@solana/wallet-adapter-react"
 
@@ -105,7 +106,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
         finalIpfsImageId = imageResult.id
         rollbackManager.imageId = imageResult.id
 
-        setFormData((prev) => ({
+        setFormData((prev:any) => ({
           ...prev,
           ipfsImageUrl: finalIpfsImageUrl,
           ipfsImageId: finalIpfsImageId,
@@ -136,6 +137,9 @@ export const TokenForm: React.FC<TokenFormProps> = ({
 
       // 4. Check wallet balance
       handleLog("💰 Validating wallet balance...")
+      if (!publicKey) {
+        throw new Error("Wallet public key is not available")
+      }
       const hasBalance = await validateWalletBalance(connection, publicKey.toBase58())
       if (!hasBalance) {
         throw new Error("Insufficient SOL balance. Please add more SOL to your wallet.")
@@ -203,7 +207,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
       }
 
       // CLean Data
-      setFormData((prev) => ({
+      setFormData((prev:any) => ({
         ...prev,
         ipfsImageUrl: null,
         ipfsImageId: null,
@@ -230,11 +234,11 @@ export const TokenForm: React.FC<TokenFormProps> = ({
   }
 
   const updateField = (field: keyof TokenData, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev:any) => ({ ...prev, [field]: value }))
   }
 
   const handleImageUpload = (file: File | null, ipfsUrl: string | null) => {
-    setFormData((prev) => ({
+    setFormData((prev:any) => ({
       ...prev,
       imageFile: file,
     }))

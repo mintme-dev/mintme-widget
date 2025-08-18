@@ -1,7 +1,8 @@
 "use client"
 
 import type React from "react"
-import type { Theme, ThemeColors } from "../styles/themes"
+import type { Theme } from "../types/index"
+import type { ThemeColors } from "../styles/themes"
 
 interface ThemeToggleProps {
   theme: Theme

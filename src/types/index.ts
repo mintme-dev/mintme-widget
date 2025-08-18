@@ -23,9 +23,9 @@ export interface TokenData {
   revokeMintAuthority: boolean
   revokeFreezeAuthority: boolean
   imageFile?: File | null
-  ipfsImageUrl?: string
-  ipfsImageId?: string // Pinata ID for the image
-  ipfsMetadataId?: string // Pinata ID for the metadata
+  ipfsImageUrl?: string | null
+  ipfsImageId?: string | null // Pinata ID for the image
+  ipfsMetadataId?: string | null // Pinata ID for the metadata
 }
 
 export interface TokenCreationResult {
@@ -58,4 +58,4 @@ export interface WalletContextManagerProps {
 }
 
 // Re-export Mintme types
-export type { MintmeConfig, MintmeResult, MintmeSDK } from "./mintme"
+// export type { MintmeConfig, MintmeResult, MintmeSDK } from "./mintme"
