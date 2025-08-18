@@ -7,6 +7,9 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui"
 import { FormField } from "./FormField"
 import { CheckboxField } from "./CheckboxField"
 import { ImageUploadField } from "./ImageUploadField"
+import { TransactionOverlay } from "./TransactionOverlay"
+import { CostEstimateBadge } from "./CostEstimateBadge"
+import { TransactionCostDisplay } from "./TransactionCostDisplay"
 import { uploadImageToPinata } from "../services/imageUploadService"
 import { uploadJsonToPinata } from "../services/metadataUploadService"
 import { createIpfsRollbackManager } from "../services/pinataCleanupService"
@@ -53,6 +56,13 @@ export const TokenForm: React.FC<TokenFormProps> = ({
   const [formError, setFormError] = useState<string | null>(null)
   const { connection } = useConnection()
 
+  // Agregar estos estados después de los estados existentes:
+  const [showOverlay, setShowOverlay] = useState(false)
+  const [transactionLogs, setTransactionLogs] = useState<string[]>([])
+  const [transactionCompleted, setTransactionCompleted] = useState(false)
+  const [transactionResult, setTransactionResult] = useState<TokenCreationResult | null>(null)
+  const [transactionError, setTransactionError] = useState<string | null>(null)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setFormError(null)
@@ -67,6 +77,12 @@ export const TokenForm: React.FC<TokenFormProps> = ({
       return
     }
 
+    // Mostrar overlay y resetear estados
+    setShowOverlay(true)
+    setTransactionLogs([])
+    setTransactionCompleted(false)
+    setTransactionResult(null)
+    setTransactionError(null)
     setIsSubmittingForm(true)
 
     // Crear el manager de rollback para IPFS
@@ -82,18 +98,18 @@ export const TokenForm: React.FC<TokenFormProps> = ({
           throw new Error("Pinata API Key (JWT) is required for image upload.")
         }
 
-        console.log("📤 Uploading image to IPFS...")
+        handleLog("📤 Uploading image to IPFS...")
         const imageResult = await uploadImageToPinata(formData.imageFile, pinataConfig)
         finalIpfsImageUrl = imageResult.url
         finalIpfsImageId = imageResult.id
-        rollbackManager.imageId = imageResult.id // Registrar ID para posible rollback
+        rollbackManager.imageId = imageResult.id
 
         setFormData((prev) => ({
           ...prev,
           ipfsImageUrl: finalIpfsImageUrl,
           ipfsImageId: finalIpfsImageId,
         }))
-        console.log("✅ Image uploaded successfully:", finalIpfsImageUrl)
+        handleLog("✅ Image uploaded successfully")
       }
 
       // 2. Construir el objeto JSON de metadatos
@@ -112,19 +128,22 @@ export const TokenForm: React.FC<TokenFormProps> = ({
         throw new Error("Pinata API Key (JWT) is required for metadata upload.")
       }
 
-      console.log("📤 Uploading metadata to IPFS...")
+      handleLog("📤 Uploading metadata to IPFS...")
       const metadataResult = await uploadJsonToPinata(metadataJson, pinataConfig, formData.tokenName)
-      rollbackManager.metadataId = metadataResult.id // Registrar ID para posible rollback
-      console.log("✅ Metadata uploaded successfully:", metadataResult.url)
+      rollbackManager.metadataId = metadataResult.id
+      handleLog("✅ Metadata uploaded successfully")
 
       // 4. Validar balance de la wallet
+      handleLog("💰 Validating wallet balance...")
       const hasBalance = await validateWalletBalance(connection, publicKey.toBase58())
       if (!hasBalance) {
         throw new Error("Insufficient SOL balance. Please add more SOL to your wallet.")
       }
+      handleLog("✅ Wallet balance validated")
 
       // 5. Crear el token usando el SDK Mintme
-      console.log("🪙 Creating token on Solana...")
+      handleLog("🪙 Creating token on Solana blockchain...")
+      handleLog(`🪙 Partner Amount...${partnerAmount}`)
       const tokenResult = await createTokenWithMintme(
         {
           ...formData,
@@ -138,30 +157,48 @@ export const TokenForm: React.FC<TokenFormProps> = ({
         cluster || "devnet",
         partnerWallet,
         partnerAmount,
+        handleLog, // Pasar el callback de logs
       )
 
-      console.log("🎉 Token created successfully!")
+      handleLog("🎉 Token created successfully!")
 
-      // 6. Si llegamos aquí, todo salió bien - llamar onSubmit
-      onSubmit(
-        {
-          ...formData,
-          ipfsImageUrl: finalIpfsImageUrl,
-          ipfsImageId: finalIpfsImageId,
-          ipfsMetadataId: metadataResult.id,
-        },
-        tokenResult,
-      )
+      // Agregar información detallada al logger
+      if (tokenResult.tokenAddress) {
+        handleLog(`Token Contract Address (CA): ${tokenResult.tokenAddress}`)
+      }
+      if (tokenResult.transactionSignature) {
+        handleLog(`Transaction Signature: ${tokenResult.transactionSignature}`)
+      }
+
+      // Marcar como completado y mostrar resultados
+      setTransactionCompleted(true)
+      setTransactionResult(tokenResult)
+
+      // 6. Llamar onSubmit después de un breve delay para que se vea el mensaje de éxito
+      setTimeout(() => {
+        onSubmit(
+          {
+            ...formData,
+            ipfsImageUrl: finalIpfsImageUrl,
+            ipfsImageId: finalIpfsImageId,
+            ipfsMetadataId: metadataResult.id,
+          },
+          tokenResult,
+        )
+      }, 1000)
     } catch (error: any) {
       console.error("❌ Token creation failed:", error)
+      handleLog(`❌ Error: ${error.message}`)
 
       // Realizar rollback de archivos IPFS si hay configuración de Pinata
       if (pinataConfig?.apiKey) {
-        console.log("🔄 Performing IPFS rollback due to error...")
+        handleLog("🔄 Performing IPFS rollback due to error...")
         try {
           await rollbackManager.cleanup(pinataConfig)
+          handleLog("✅ IPFS cleanup completed")
         } catch (cleanupError) {
           console.error("⚠️ Error during IPFS cleanup:", cleanupError)
+          handleLog("⚠️ Error during IPFS cleanup")
         }
       }
 
@@ -186,7 +223,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
         userFriendlyError = error.message
       }
 
-      setFormError(userFriendlyError)
+      setTransactionError(userFriendlyError)
     } finally {
       setIsSubmittingForm(false)
     }
@@ -223,11 +260,11 @@ export const TokenForm: React.FC<TokenFormProps> = ({
   }
 
   const sectionTitleStyles: React.CSSProperties = {
-    fontSize: "1rem",
+    fontSize: "0.875rem",
     fontWeight: "600",
     color: theme.text,
     marginBottom: "1rem",
-    marginTop: "2rem",
+    marginTop: "1rem",
     fontFamily: "system-ui, -apple-system, sans-serif",
   }
 
@@ -251,6 +288,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
     if (connecting) return "Connecting..."
     if (isSubmittingForm) return "Creating Token..."
     if (!connected) return "Connect Wallet"
+    if (!isFormValid()) return "Complete Required Fields"
     return "Create Token"
   }
 
@@ -260,10 +298,27 @@ export const TokenForm: React.FC<TokenFormProps> = ({
     return !isFormValid()
   }
 
+  const getTooltipMessage = () => {
+    if (connecting || isSubmittingForm) return ""
+    if (!connected) return "Please connect your wallet first"
+
+    const missingFields = []
+    if (!formData.tokenName.trim()) missingFields.push("Token Name")
+    if (!formData.tokenSymbol.trim()) missingFields.push("Token Symbol")
+    if (!formData.initialSupply.trim()) missingFields.push("Initial Supply")
+    if (formData.decimals < 0) missingFields.push("Valid Decimals")
+
+    if (missingFields.length > 0) {
+      return `Missing required fields: ${missingFields.join(", ")}`
+    }
+
+    return ""
+  }
+
   const buttonStyles: React.CSSProperties = {
     width: "100%",
-    padding: "1rem 2rem",
-    fontSize: "1.1rem",
+    padding: "0.6rem 0.6rem",
+    fontSize: "0.8rem",
     fontWeight: "600",
     backgroundColor: getButtonDisabled() ? theme.textSecondary : theme.buttonPrimary,
     color: theme.buttonText,
@@ -271,22 +326,35 @@ export const TokenForm: React.FC<TokenFormProps> = ({
     borderRadius: "0.75rem",
     cursor: getButtonDisabled() ? "not-allowed" : "pointer",
     transition: "background-color 0.2s ease",
-    marginTop: "2rem",
+    marginTop: "0.2rem",
     fontFamily: "system-ui, -apple-system, sans-serif",
     opacity: getButtonDisabled() ? 0.6 : 1,
+  }
+
+  // Crear función para manejar logs:
+  const handleLog = (message: string) => {
+    setTransactionLogs((prev) => [...prev, `${new Date().toLocaleTimeString()}: ${message}`])
+  }
+
+  // Crear función para cerrar el overlay:
+  const handleCloseOverlay = () => {
+    setShowOverlay(false)
+    setTransactionLogs([])
+    setTransactionCompleted(false)
+    setTransactionResult(null)
+    setTransactionError(null)
   }
 
   return (
     <form style={formStyles} onSubmit={handleSubmit}>
       {/* Información de wallet cuando está conectado */}
-      {connected && publicKey && (
-        <div style={walletInfoStyles}>
-          <div style={{ fontSize: "0.875rem", color: theme.text, marginBottom: "0.5rem", fontWeight: "500" }}>
-            ✅ Wallet Connected
-          </div>
-          <div style={walletAddressStyles}>{publicKey.toBase58()}</div>
-        </div>
-      )}
+      <div style={{ height: "1.25rem", marginBottom: "0.5rem" }}>
+        {connected && (
+          <CostEstimateBadge theme={theme} partnerAmount={partnerAmount} cluster={cluster} />
+        )}
+      </div>
+
+      {/* {connected && <TransactionCostDisplay theme={theme} partnerAmount={partnerAmount} cluster={cluster} />} */}
 
       <div style={fieldsRowStyles}>
         <FormField
@@ -395,23 +463,76 @@ export const TokenForm: React.FC<TokenFormProps> = ({
         </div>
       )}
 
-      <button
-        type="submit"
-        style={buttonStyles}
-        disabled={getButtonDisabled()}
-        onMouseEnter={(e) => {
-          if (!getButtonDisabled()) {
-            e.currentTarget.style.backgroundColor = theme.buttonPrimaryHover
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!getButtonDisabled()) {
-            e.currentTarget.style.backgroundColor = theme.buttonPrimary
-          }
-        }}
-      >
-        {getButtonText()}
-      </button>
+      <div style={{ position: "relative", width: "100%" }}>
+        <button
+          type="submit"
+          style={buttonStyles}
+          disabled={getButtonDisabled()}
+          title={getTooltipMessage()} // Añadir tooltip nativo
+          onMouseEnter={(e) => {
+            if (!getButtonDisabled()) {
+              e.currentTarget.style.backgroundColor = theme.buttonPrimaryHover
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!getButtonDisabled()) {
+              e.currentTarget.style.backgroundColor = theme.buttonPrimary
+            }
+          }}
+        >
+          {getButtonText()}
+        </button>
+
+        {/* Tooltip personalizado para mejor UX */}
+        {getButtonDisabled() && getTooltipMessage() && 1==2 && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: "calc(100% + 8px)",
+              left: "50%",
+              transform: "translateX(-50%)",
+              backgroundColor: theme.cardBackground,
+              border: `1px solid ${theme.border}`,
+              borderRadius: "0.5rem",
+              padding: "0.5rem 0.75rem",
+              fontSize: "0.75rem",
+              color: theme.textSecondary,
+              boxShadow: theme.shadow,
+              whiteSpace: "nowrap",
+              zIndex: 1000,
+              opacity: 0.95,
+            }}
+          >
+            {getTooltipMessage()}
+            {/* Flecha del tooltip */}
+            <div
+              style={{
+                position: "absolute",
+                top: "100%",
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: 0,
+                height: 0,
+                borderLeft: "6px solid transparent",
+                borderRight: "6px solid transparent",
+                borderTop: `6px solid ${theme.border}`,
+              }}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Agregar el componente TransactionOverlay al final del return, justo antes del cierre del form */}
+      <TransactionOverlay
+        isVisible={showOverlay}
+        theme={theme}
+        logs={transactionLogs}
+        isCompleted={transactionCompleted}
+        result={transactionResult}
+        error={transactionError}
+        cluster={cluster || "devnet"}
+        onClose={handleCloseOverlay}
+      />
     </form>
   )
 }

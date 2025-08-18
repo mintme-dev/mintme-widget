@@ -23,7 +23,7 @@ export interface CreateTokenOptions {
 export interface CreateTokenResult {
   success: boolean
   txSignature?: string
-  tokenAddress?: string
+  mint?: string
   error?: string
   // Otros campos que pueda retornar el SDK
 }

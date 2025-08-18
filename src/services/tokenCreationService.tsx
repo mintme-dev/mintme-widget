@@ -3,6 +3,8 @@ import type { WalletContextState } from "@solana/wallet-adapter-react"
 import type { TokenData, TokenCreationResult } from "../types"
 import type { CreateTokenOptions, CreateTokenResult } from "../types/mintme"
 
+type LogCallback = (message: string) => void
+
 /**
  * Crea un objeto payer compatible con el SDK Mintme desde una wallet conectada
  * @param walletContext Contexto de wallet del hook useWallet()
@@ -37,6 +39,7 @@ const getPayerFromWallet = (walletContext: WalletContextState) => {
  * @param cluster Red de Solana
  * @param partnerWallet Wallet del partner (opcional)
  * @param partnerAmount Cantidad de comisión (opcional)
+ * @param onLog Callback para logs (opcional)
  * @returns Resultado de la creación del token
  */
 export const createTokenWithMintme = async (
@@ -47,6 +50,7 @@ export const createTokenWithMintme = async (
   cluster: "devnet" | "testnet" | "mainnet-beta",
   partnerWallet?: string,
   partnerAmount?: number,
+  onLog?: LogCallback, // Nuevo parámetro para logs
 ): Promise<TokenCreationResult> => {
   // Validar que la wallet esté conectada
   if (!walletContext.connected || !walletContext.publicKey) {
@@ -63,18 +67,21 @@ export const createTokenWithMintme = async (
     // Preparar las opciones para createToken
     const createTokenOptions: CreateTokenOptions = {
       connection: connection,
-      payer: payer, // Usar el payer compatible
+      payer: payer,
       name: tokenData.tokenName,
       symbol: tokenData.tokenSymbol,
-      uniqueKey: Date.now().toString(), // Generar clave única con timestamp
+      uniqueKey: Date.now().toString(),
       decimals: tokenData.decimals,
-      initialSupply: Number(tokenData.initialSupply), // Convertir string a number
+      initialSupply: Number(tokenData.initialSupply * 1_000_000_000),
       uri: metadataUri,
       revokeMint: tokenData.revokeMintAuthority,
       revokeFreeze: tokenData.revokeFreezeAuthority,
       partnerWallet: partnerWallet,
-      partnerAmount: partnerAmount || 0,
-      logger: (message: string) => console.log(`[Mintme SDK]: ${message}`), // Logger personalizado
+      partnerAmount: partnerAmount ? partnerAmount * 1_000_000_000 : 0,
+      logger: (message: string) => {
+        console.log(`[Mintme SDK]: ${message}`)
+        onLog?.(message) // Enviar log al callback
+      },
     }
 
     console.log("Creating token with Mintme SDK createToken function:", {
@@ -90,7 +97,7 @@ export const createTokenWithMintme = async (
 
       return {
         transactionSignature: result.txSignature,
-        tokenAddress: result.tokenAddress, // Si el SDK lo proporciona
+        tokenAddress: result.mint, // ← Cambiar de result.tokenAddress a result.mint
         metadataUri: metadataUri,
       }
     } else {
