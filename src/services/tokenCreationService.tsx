@@ -6,21 +6,21 @@ import type { CreateTokenOptions, CreateTokenResult } from "../types/mintme"
 type LogCallback = (message: string) => void
 
 /**
- * Crea un objeto payer compatible con el SDK Mintme desde una wallet conectada
- * @param walletContext Contexto de wallet del hook useWallet()
- * @returns Objeto payer compatible con el SDK
+ * Creates a payer object compatible with Mintme SDK from a connected wallet
+ * @param walletContext Wallet context from useWallet() hook
+ * @returns Payer object compatible with SDK
  */
 const getPayerFromWallet = (walletContext: WalletContextState) => {
   if (!walletContext.connected || !walletContext.publicKey || !walletContext.wallet?.adapter) {
     throw new Error("Wallet is not connected or adapter is not available")
   }
 
-  // Verificar que el adaptador tenga los métodos necesarios
+  // Verify that the adapter has the necessary methods
   if (!walletContext.wallet.adapter.signTransaction) {
     throw new Error("Wallet adapter does not support signing transactions")
   }
 
-  // Crear objeto payer compatible con el SDK
+  // Create payer object compatible with SDK
   const payer = {
     publicKey: walletContext.publicKey,
     signTransaction: walletContext.wallet.adapter.signTransaction.bind(walletContext.wallet.adapter),
@@ -31,16 +31,55 @@ const getPayerFromWallet = (walletContext: WalletContextState) => {
 }
 
 /**
- * Crea un token usando la función createToken del SDK Mintme
- * @param tokenData Datos del token desde el formulario
- * @param metadataUri URI de los metadatos en IPFS
- * @param walletContext Contexto de wallet del hook useWallet()
- * @param connection Conexión a Solana
- * @param cluster Red de Solana
- * @param partnerWallet Wallet del partner (opcional)
- * @param partnerAmount Cantidad de comisión (opcional)
- * @param onLog Callback para logs (opcional)
- * @returns Resultado de la creación del token
+ * Converts initial supply considering decimals
+ * @param initialSupply Initial supply as string
+ * @param decimals Number of decimals
+ * @returns Supply in smallest unit
+ */
+const convertInitialSupply = (initialSupply: string, decimals: number): string => {
+  try {
+    // Remove commas and spaces from input
+    const cleanSupply = initialSupply.replace(/[,\s]/g, "")
+
+    // Validate that it's a valid number
+    if (!/^\d+(\.\d+)?$/.test(cleanSupply)) {
+      throw new Error("Invalid supply format")
+    }
+
+    const supplyNumber = Number.parseFloat(cleanSupply)
+
+    // Validate that it's not negative or zero
+    if (supplyNumber <= 0) {
+      throw new Error("Supply must be greater than 0")
+    }
+
+    // Validate that it doesn't exceed JavaScript's safe number maximum
+    if (supplyNumber > Number.MAX_SAFE_INTEGER) {
+      throw new Error("Supply is too large")
+    }
+
+    // Convert to smallest unit (multiply by 10^decimals)
+    const multiplier = Math.pow(10, decimals)
+    const finalSupply = Math.floor(supplyNumber * multiplier)
+
+    return finalSupply.toString()
+  } catch (error) {
+    console.error("Error converting initial supply:", error)
+    throw new Error(`Invalid initial supply: ${error instanceof Error ? error.message : "Unknown error"}`)
+  }
+}
+
+/**
+ * Creates a token using the createToken function from Mintme SDK
+ * @param tokenData Token data from form
+ * @param metadataUri Metadata URI on IPFS
+ * @param walletContext Wallet context from useWallet() hook
+ * @param connection Solana connection
+ * @param cluster Solana network
+ * @param partnerWallet Partner wallet (optional)
+ * @param partnerAmount Commission amount (optional)
+ * @param onLog Callback for logs (optional)
+ * @returns Token creation result
  */
 export const createTokenWithMintme = async (
   tokenData: TokenData,
@@ -50,21 +89,26 @@ export const createTokenWithMintme = async (
   cluster: "devnet" | "testnet" | "mainnet-beta",
   partnerWallet?: string,
   partnerAmount?: number,
-  onLog?: LogCallback, // Nuevo parámetro para logs
+  onLog?: LogCallback,
 ): Promise<TokenCreationResult> => {
-  // Validar que la wallet esté conectada
+  // Validate that wallet is connected
   if (!walletContext.connected || !walletContext.publicKey) {
     throw new Error("Wallet is not connected")
   }
 
   try {
-    // Crear el objeto payer compatible con el SDK
+    // Create payer object compatible with SDK
     const payer = getPayerFromWallet(walletContext)
 
-    // Importar la función createToken dinámicamente
+    // Import createToken function dynamically
     const { createToken } = await import("mintme-sdk")
 
-    // Preparar las opciones para createToken
+    // Convert initial supply considering decimals
+    const convertedSupply = convertInitialSupply(tokenData.initialSupply, tokenData.decimals)
+
+    onLog?.(`Converting supply: ${tokenData.initialSupply} tokens = ${convertedSupply} base units`)
+
+    // Prepare options for createToken
     const createTokenOptions: CreateTokenOptions = {
       connection: connection,
       payer: payer,
@@ -72,24 +116,25 @@ export const createTokenWithMintme = async (
       symbol: tokenData.tokenSymbol,
       uniqueKey: Date.now().toString(),
       decimals: tokenData.decimals,
-      initialSupply: Number(tokenData.initialSupply * 1_000_000_000),
+      initialSupply: convertedSupply, // Use converted supply as string
       uri: metadataUri,
       revokeMint: tokenData.revokeMintAuthority,
       revokeFreeze: tokenData.revokeFreezeAuthority,
       partnerWallet: partnerWallet,
-      partnerAmount: partnerAmount ? partnerAmount * 1_000_000_000 : 0,
+      partnerAmount: partnerAmount || 0,
       logger: (message: string) => {
         console.log(`[Mintme SDK]: ${message}`)
-        onLog?.(message) // Enviar log al callback
+        onLog?.(message) // Send log to callback
       },
     }
 
     console.log("Creating token with Mintme SDK createToken function:", {
       ...createTokenOptions,
-      payer: walletContext.publicKey.toBase58(), // Solo mostrar la dirección pública en el log
+      payer: walletContext.publicKey.toBase58(), // Only show public address in log
+      initialSupply: `${tokenData.initialSupply} (${convertedSupply} base units)`,
     })
 
-    // Llamar a la función createToken del SDK
+    // Call createToken function from SDK
     const result: CreateTokenResult = await createToken(createTokenOptions)
 
     if (result.success && result.txSignature) {
@@ -97,7 +142,7 @@ export const createTokenWithMintme = async (
 
       return {
         transactionSignature: result.txSignature,
-        tokenAddress: result.mint, // ← Cambiar de result.tokenAddress a result.mint
+        tokenAddress: result.mint,
         metadataUri: metadataUri,
       }
     } else {
@@ -106,8 +151,12 @@ export const createTokenWithMintme = async (
   } catch (error: any) {
     console.error("Error creating token with Mintme SDK:", error)
 
-    // Mejorar el manejo de errores específicos
-    if (error.message?.includes("insufficient funds")) {
+    // Improve specific error handling
+    if (error.message?.includes("Invalid initial supply")) {
+      throw new Error(
+        `Invalid initial supply: ${error.message}. Please check that your supply value is valid and not too large.`,
+      )
+    } else if (error.message?.includes("insufficient funds")) {
       throw new Error("Insufficient SOL balance to create token. Please add more SOL to your wallet.")
     } else if (error.message?.includes("blockhash")) {
       throw new Error("Network error. Please try again in a few moments.")
@@ -122,22 +171,22 @@ export const createTokenWithMintme = async (
 }
 
 /**
- * Valida que la wallet tenga suficiente balance para crear un token
- * @param connection Conexión a Solana
- * @param walletPublicKey Clave pública de la wallet
- * @param estimatedCost Costo estimado en lamports (opcional)
- * @returns true si tiene suficiente balance
+ * Validates that wallet has sufficient balance to create a token
+ * @param connection Solana connection
+ * @param walletPublicKey Wallet public key
+ * @param estimatedCost Estimated cost in lamports (optional)
+ * @returns true if has sufficient balance
  */
 export const validateWalletBalance = async (
   connection: Connection,
   walletPublicKey: string,
-  estimatedCost = 5000000, // ~0.005 SOL por defecto
+  estimatedCost = 5000000, // ~0.005 SOL by default
 ): Promise<boolean> => {
   try {
     const balance = await connection.getBalance(new (await import("@solana/web3.js")).PublicKey(walletPublicKey))
     return balance >= estimatedCost
   } catch (error) {
     console.warn("Could not validate wallet balance:", error)
-    return true // Asumir que tiene balance si no se puede verificar
+    return true // Assume has balance if can't verify
   }
 }
