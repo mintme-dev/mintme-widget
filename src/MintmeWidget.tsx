@@ -386,6 +386,10 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
   const [showWalletTooltip, setShowWalletTooltip] = useState(false)
 
   useEffect(() => {
+    injectWalletStyles()
+  }, [])
+
+  useEffect(() => {
     if (defaultTheme === "system") {
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
       const handleChange = () => setCurrentTheme(getSystemTheme())
