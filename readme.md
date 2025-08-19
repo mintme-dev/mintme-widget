@@ -2,6 +2,9 @@
 
 A React widget for creating Solana tokens with a simple, intuitive interface. Built for developers who want to integrate token creation functionality into their applications.
 
+<img width="2026" height="1134" alt="mintme-github-banner-min" src="https://github.com/user-attachments/assets/a4422de6-beff-444e-9abf-437960c197de" />
+
+
 **Powered by [mintme-sdk](https://www.npmjs.com/package/mintme-sdk)** - The most reliable Solana token creation SDK.
 
 ## ✨ Features
@@ -9,7 +12,7 @@ A React widget for creating Solana tokens with a simple, intuitive interface. Bu
 - 🚀 **Easy Integration** - Drop-in React component
 - 🎨 **Customizable Themes** - Light, dark, and system themes
 - 🔗 **Custom RPC Support** - Use your own Solana RPC endpoint
-- 📁 **IPFS Integration** - Automatic metadata and image upload via Pinata
+- 📁 **IPFS Integration** - Automatic metadata and image upload via Pinata.cloud
 - 💰 **Partner Fees** - Optional revenue sharing
 - 📱 **Responsive Design** - Works on all screen sizes
 - 🔍 **Real-time Logging** - Monitor the token creation process
