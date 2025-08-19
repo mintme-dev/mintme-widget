@@ -17,7 +17,7 @@ export interface CreateTokenOptions {
   partnerAmount?: number | string // | BN
   programId?: string | PublicKey
   idl?: string | object
-  logger?: Function
+  logger?: (message: string) => void
 }
 
 export interface CreateTokenResult {
