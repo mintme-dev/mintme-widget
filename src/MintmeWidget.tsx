@@ -8,6 +8,7 @@ import { TokenForm } from "./components/TokenForm"
 import { WalletContextProvider } from "./components/WalletProvider"
 import { themes, getInitialTheme, getSystemTheme } from "./styles/themes"
 import type { MintmeWidgetProps, TokenData, TokenCreationResult } from "./types/index"
+import packageJson from "../package.json"
 
 const injectWalletStyles = () => {
   if (typeof document === "undefined") return
@@ -548,6 +549,22 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
           </a>
         </div>
       )}
+
+      <div
+        style={{
+          position: "absolute",
+          bottom: "0.2rem",
+          left: "0.2rem",
+          fontSize: "0.65rem",
+          color: themeColors.textSecondary,
+          opacity: 0.4,
+          fontFamily: "monospace",
+          pointerEvents: "none",
+          userSelect: "none",
+        }}
+      >
+        v{packageJson.version}
+      </div>
 
       {showWalletTooltip && (
         <div
