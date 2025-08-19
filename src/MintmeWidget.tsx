@@ -10,6 +10,33 @@ import { themes, getInitialTheme, getSystemTheme } from "./styles/themes"
 import type { MintmeWidgetProps, TokenData, TokenCreationResult } from "./types/index"
 import packageJson from "../package.json"
 
+// Polyfill 
+if (typeof window !== "undefined") {
+  if (typeof global === "undefined") {
+    ;(window as any).global = window
+  }
+
+  if (typeof process === "undefined") {
+    ;(window as any).process = {
+      env: {},
+      version: "",
+      platform: "browser",
+      nextTick: (fn: Function) => setTimeout(fn, 0),
+      browser: true,
+    }
+  }
+
+  // Buffer polyfill si es necesario
+  if (typeof Buffer === "undefined") {
+    try {
+      const { Buffer } = require("buffer")
+      ;(window as any).Buffer = Buffer
+    } catch (e) {
+      // Buffer no disponible, continuar sin él
+    }
+  }
+}
+
 const injectWalletStyles = () => {
   if (typeof document === "undefined") return
 
