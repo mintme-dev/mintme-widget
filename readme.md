@@ -4,8 +4,11 @@ A React widget for creating Solana tokens with a simple, intuitive interface. Bu
 
 <img width="2026" height="1134" alt="mintme-github-banner-min" src="https://github.com/user-attachments/assets/a4422de6-beff-444e-9abf-437960c197de" />
 
-
 **Powered by [mintme-sdk](https://www.npmjs.com/package/mintme-sdk)** - The most reliable Solana token creation SDK.
+
+## 🚀 Playground Codesandbox.io
+- React: https://codesandbox.io/p/sandbox/mintme-widget-react-yn68rc
+- Vite+React: https://codesandbox.io/p/devbox/react-ts-mintme-widget-pkh3g3
 
 ## ✨ Features
 
@@ -297,9 +300,7 @@ const result = await createToken({
 
 ## 🆘 Support
 
-- 📧 Email: support@mintme.dev
 - 🌐 Website: [mintme.dev](https://mintme.dev)
-- 📚 Documentation: [docs.mintme.dev](https://docs.mintme.dev)
 - 📦 SDK: [mintme-sdk on npm](https://www.npmjs.com/package/mintme-sdk)
 
 ## 📄 License
