@@ -1,6 +1,6 @@
 {
   "name": "mintme-widget",
-  "version": "3.1.21",
+  "version": "3.1.22",
   "description": "A lightweight widget to connect to Solana and mint tokens with mintme.dev",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
