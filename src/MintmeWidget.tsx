@@ -545,7 +545,7 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
             rel="noopener noreferrer"
             style={{ color: themeColors.textSecondary, textDecoration: "none" }}
           >
-            Powered by Mintme.dev / v{packageJson.version}
+            Powered by Mintme.dev
           </a>
         </div>
       )}
