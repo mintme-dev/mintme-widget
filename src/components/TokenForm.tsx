@@ -459,6 +459,7 @@ export const TokenForm: React.FC<TokenFormProps> = ({
             color: "#ef4444",
             fontSize: "0.875rem",
             marginTop: "1rem",
+            marginBottom: "1rem",
             textAlign: "center",
             padding: "0.75rem",
             backgroundColor: "#fef2f2",

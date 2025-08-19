@@ -553,11 +553,11 @@ const MintmeWidgetContent: React.FC<MintmeWidgetProps> = ({
       <div
         style={{
           position: "absolute",
-          bottom: "0.2rem",
-          left: "0.2rem",
+          bottom: "0.5rem",
+          left: "0.5rem",
           fontSize: "0.65rem",
           color: themeColors.textSecondary,
-          opacity: 0.4,
+          opacity: 0.3,
           fontFamily: "monospace",
           pointerEvents: "none",
           userSelect: "none",
