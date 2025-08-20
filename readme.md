@@ -53,8 +53,21 @@ function App() {
 
   return (
     <MintmeWidget
+      endpoint="https://devnet.helius-rpc.com/?api-key=your-key"
       cluster="devnet"
+      pinataConfig={{
+        apiKey: "your-pinata-jwt-token",
+        gateway: "your-gateway.com"
+      }}
+      partnerWallet="your-wallet-here"
+      partnerAmount={0}
+      defaultTheme="light"
+      options={{
+        showCredit: false
+      }}
+      className="my-custom-styles"
       onSubmit={handleTokenCreation}
+      onLog={(message) => console.log('Log:', message)}
     />
   )
 }
@@ -80,62 +93,7 @@ None! The widget works with default settings.
 | `options` | `object` | `{}` | Additional widget options |
 | `className` | `string` | - | Custom CSS class |
 
-## 🔧 Configuration Examples
-
-### Basic Usage
-```tsx
-<MintmeWidget
-  cluster="devnet"
-  onSubmit={(tokenData, result) => {
-    alert(`Token created: \${result.tokenAddress}`)
-  }}
-/>
-```
-
-### With Custom RPC
-```tsx
-<MintmeWidget
-  cluster="devnet"
-  endpoint="https://your-custom-rpc.com"
-  onSubmit={handleTokenCreation}
-/>
-```
-
-### With IPFS Support
-```tsx
-<MintmeWidget
-  cluster="devnet"
-  pinataConfig={{
-    apiKey: "your-pinata-jwt-token",
-    gateway: "your-custom-gateway.com" // optional
-  }}
-  onSubmit={handleTokenCreation}
-/>
-```
-
-### With Partner Fees
-```tsx
-<MintmeWidget
-  cluster="mainnet-beta"
-  partnerWallet="YourWalletAddressHere"
-  partnerAmount={0.01} // 0.01 SOL fee
-  onSubmit={handleTokenCreation}
-/>
-```
-
-### With Logging
-```tsx
-<MintmeWidget
-  cluster="devnet"
-  onLog={(message) => {
-    console.log('Widget:', message)
-    // Send to your logging service
-  }}
-  onSubmit={handleTokenCreation}
-/>
-```
-
-### Complete Configuration
+## 🔧 Complete Configuration
 ```tsx
 <MintmeWidget
   endpoint="https://devnet.helius-rpc.com/?api-key=your-key"
@@ -144,7 +102,7 @@ None! The widget works with default settings.
     apiKey: "your-pinata-jwt-token",
     gateway: "your-gateway.com"
   }}
-  partnerWallet="7viHj1u6aQS9Nmc55FokX3B9NbDJUPwMYQvKgBfWeYXE"
+  partnerWallet="your-wallet-here"
   partnerAmount={0}
   defaultTheme="light"
   options={{
