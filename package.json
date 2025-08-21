@@ -1,6 +1,6 @@
 {
   "name": "mintme-widget",
-  "version": "3.1.27",
+  "version": "3.1.28",
   "description": "A lightweight widget to connect to Solana and mint tokens with mintme.dev",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -27,7 +27,6 @@
     "build_tsc": "npm run build:types && vite build",
     "preview": "vite preview",
     "release:patch": "npm run build && npm version patch && npm publish --access public"
- 
   },
   "dependencies": {
     "axios": "^1.9.0",
