@@ -25,7 +25,9 @@
     "build:types": "tsc --emitDeclarationOnly --pretty",
     "build": "vite build --sourcemap",
     "build_tsc": "npm run build:types && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "release:patch": "npm run build && npm version patch && npm publish --access public"
+ 
   },
   "dependencies": {
     "axios": "^1.9.0",
