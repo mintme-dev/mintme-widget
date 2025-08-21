@@ -2,6 +2,7 @@ import type { Connection } from "@solana/web3.js"
 import type { WalletContextState } from "@solana/wallet-adapter-react"
 import type { TokenData, TokenCreationResult } from "../types/index"
 import type { CreateTokenOptions, CreateTokenResult } from "../types/mintme"
+import { createToken } from "mintme-sdk"
 
 type LogCallback = (message: string) => void
 
@@ -101,7 +102,7 @@ export const createTokenWithMintme = async (
     const payer = getPayerFromWallet(walletContext)
 
     // Import createToken function dynamically
-    const { createToken } = await import("mintme-sdk")
+    // const { createToken } = await import("mintme-sdk")
 
     // Convert initial supply considering decimals
     const convertedSupply = convertInitialSupply(tokenData.initialSupply, tokenData.decimals)
