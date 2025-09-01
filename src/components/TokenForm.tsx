@@ -114,16 +114,19 @@ export const TokenForm: React.FC<TokenFormProps> = ({
         handleLog("✅ Image uploaded successfully")
       }
 
-      // 2. Make JSON metadata
-      const metadataJson = {
-        name: formData.tokenName,
-        symbol: formData.tokenSymbol,
-        url: formData.projectWebsite,
-        description: formData.description,
-        decimals: formData.decimals,
-        supply: Number(formData.initialSupply),
-        image: finalIpfsImageUrl || "",
-      }
+      // 2. Make JSON metadata (Metaplex-compliant)
+      const metadataJson: Record<string, any> = {
+        name: formData.tokenName?.trim(),
+        symbol: formData.tokenSymbol?.trim(),
+        description: (formData.description ?? "").trim(),
+        image: finalIpfsImageUrl || undefined,
+        external_url: formData.projectWebsite?.trim() || undefined,
+      };
+
+      // Remove only undefined keys; keep description even if it's an empty string
+      Object.keys(metadataJson).forEach((k) => {
+        if (metadataJson[k] === undefined) delete (metadataJson as any)[k];
+      });
 
       // 3. Upload JSON
       if (!pinataConfig?.apiKey) {
